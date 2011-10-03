@@ -1,0 +1,74 @@
+#!/usr/bin/garden-exec
+#{
+# source `dirname $0`/../share/env.sh
+# exec python $0 "$@"
+#}
+
+'''
+Draw topology of template or residue.
+
+If the input filename starts with 'templates', it is treated as a viparr
+template file, and the residue should be the name of a template in the file.
+
+Otherwise, the input is treated as a molecular system, and the residue argument
+is treated as a 0-based unique residue id (not to be confused with the pdb resid),
+as reported by viparr when template matching fails.
+'''
+
+import os
+import msys
+import viparr
+import subprocess
+
+def parse_args():
+    from argparse import ArgumentParser
+    parser = ArgumentParser(description=__doc__)
+    parser.add_argument('tplfile', metavar='INPUT_FILE', help='template or structure file')
+    parser.add_argument('tplname', metavar='RESIDUE',    help='template name or residue id')
+    parser.add_argument('--dotfile', default='topology.dot', help="file to write dot graph (default: topology.dot)")
+    parser.add_argument('--pngfile', default='topology.png', help="file to write png graphviz output (default: topology.png)")
+    parser.add_argument('--display', action='store_true', help="use ImageMagick to display file")
+    return parser.parse_args()
+
+def main():
+    args = parse_args()
+    with open(args.dotfile, 'w') as fp:
+        if os.path.basename(args.tplfile).startswith('templates'):
+            mol = read_template(args.tplfile, args.tplname)
+            fp.write(viparr.SystemToDot(mol))
+        else:
+            resid = int(args.tplname)
+            mol, resid = read_residue(args.tplfile, resid)
+            fp.write(viparr.SystemToDot(mol, resid))
+
+    subprocess.check_call(['neato', '-Tpng', args.dotfile, '-o', args.pngfile])
+    if args.display:
+        subprocess.check_call(['display', args.pngfile])
+
+def read_template(tplfile, tplname):
+    templates = viparr.ImportTemplates(tplfile)
+    for t in templates:
+        if t.system.residue(0).name == tplname:
+            return t.system
+    raise RuntimeError("Could not find template named %s in file %s" % (tplname, tplfile))
+
+def read_residue(ifile, residue_id):
+    resid = int(residue_id)
+    mol = msys.Load(ifile)
+    res = mol.residue(resid)
+    print "using residue %d: %s%d:%s with %d atoms" % (resid, res.chain.name, res.resid, res.name, res.natoms)
+    # keep track of which residue is the one we selected
+    pname = '_draw_template_residue_target'
+    mol.addAtomProp(pname, int)
+    res.atoms[0][pname] = 1
+
+    mol = mol.clone('withinbonds 1 of residue %d' % resid)
+    atms = mol.select('%s 1' % pname)
+    assert len(atms)==1
+    resid = atms[0].residue.id
+    return mol, resid
+
+if __name__=='__main__':
+    main()
+
+#! vim: filetype=python

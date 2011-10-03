@@ -1,0 +1,17 @@
+{
+   "info" : ["MacKerell et al. (2004), J. Comp. Chem. 25, 1400-1415 (protein cmap)",
+             "MacKerell et al. (1998), J. Phys. Chem. B. 102, 3586-3616 (proteins)",
+             "Foloppe et al. (2000), J. Comp. Chem. 21, 86-104 (nucleic acids)",
+             "MacKerell et al. (2000), J. Comp. Chem. 21, 105-120 (nucleic acids)",
+             "Feller et al. (2000), J. Phys. Chem. B. 104, 7510-7515 (lipids)",
+             "Feller et al. (2002), J. Am. Chem. Soc. 124, 318-326 (lipids)",
+             "Beglov et al. (1994), J. Chem. Phys. 100, 9050-9063 (ions)",
+             "parameter sets obtained from http://mackerell.umaryland.edu/CHARMM_ff_params_files/toppar_c35b2_c36a2.tgz",
+             "viparr forcefield generated using all27_prot_na and all27_lipid top/par files"],
+   "vdw_func" : "LJ12_6_sig_epsilon",
+   "vdw_comb_rule" : "ARITHMETIC/GEOMETRIC",
+   "exclusions" : 4,
+   "es_scale" : [0.0, 0.0, 1.0],
+   "lj_scale" : [0.0, 0.0, 1.0],
+   "plugins" : ["bonds", "angles", "ureybradley", "propers", "impropers", "vdw1", "exclusions", "cmap", "mass"]
+}

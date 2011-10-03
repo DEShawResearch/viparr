@@ -1,0 +1,6 @@
+build
+.sconsign.dblite
+doc/out/*
+doc/build
+.cache
+.pytest_cache

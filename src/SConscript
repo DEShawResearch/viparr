@@ -1,0 +1,89 @@
+import os, hashlib
+Import('env')
+
+def build_version_hxx(target, source, env):
+    with open(source[0].path) as fp:
+        exec(fp.read())
+    with open(target[0].path, 'w') as fp:
+        print >> fp, "#define VIPARR_VERSION \"%s\"" % version
+        print >> fp, "#define VIPARR_VERSION_HEX 0x%s" % hashlib.md5(version).hexdigest()[:6]
+
+ver = env.Command('version.hxx', 'version.py', build_version_hxx)
+env.AddPythonModule('version.py', prefix='viparr')
+env.AddHeaders(ver, prefix="viparr", stage=True)
+
+env.AddHeaders(env.Glob('*.hxx'),prefix="viparr")
+
+# The block of code below finds all headers in subdirectories of the
+# src dir, then tells scons to add them to the built include/ dir
+# under the same subdir name they have here.
+for header in env.Glob('*/*.hxx'):
+  xx = header.rstr()
+  base1,_ = os.path.split(xx)
+  base2,_ = os.path.split(base1)
+  prefix = os.path.join('viparr', os.path.relpath(base1,base2))
+  # example call: env.AddHeaders('/u/nyc/lauria/src/viparr4/src/util/system_to_dot.hxx', prefix='viparr/util')
+  env.AddHeaders(xx, prefix=prefix)
+
+env=env.Clone()
+
+objs=env.AddObject(Split('''
+
+importexport/export_cmap.cxx
+importexport/export_ff.cxx
+importexport/export_params.cxx
+importexport/export_rules.cxx
+importexport/export_templates.cxx
+importexport/import_cmap.cxx
+importexport/import_ff.cxx
+importexport/import_params.cxx
+importexport/import_rules.cxx
+importexport/import_templates.cxx
+
+plugins/add_nbody_table.cxx
+plugins/angles.cxx
+plugins/bonds.cxx
+plugins/cmap.cxx
+plugins/charges_formal.cxx
+plugins/exclusions.cxx
+plugins/exclusions_and_scaled_pairs.cxx
+plugins/impropers.cxx
+plugins/mass.cxx
+plugins/pairs_lj_scaled_14.cxx
+plugins/propers.cxx
+plugins/pseudopol_fermi.cxx
+plugins/scaled_pair_overrides.cxx
+plugins/ureybradley.cxx
+plugins/vdw1.cxx
+plugins/vdw2.cxx
+plugins/virtuals.cxx
+plugins/virtuals_regular.cxx
+
+postprocess/apply_nbfix.cxx
+postprocess/build_constraints.cxx
+postprocess/compile_plugins.cxx
+postprocess/fix_masses.cxx
+postprocess/optimize_vsitedefs.cxx
+
+util/get_bonds_angles_dihedrals.cxx
+util/system_to_dot.cxx
+
+add_system_tables.cxx
+append_params.cxx
+execute_viparr.cxx
+execute_iviparr.cxx
+ff.cxx
+merge_ff.cxx
+parameter_matcher.cxx
+pattern.cxx
+rules.cxx
+template_typer.cxx
+templated_system.cxx
+'''))
+
+libenv = env.Clone()
+libviparr=libenv.AddLibrary('viparr', objs)
+
+Export('libviparr')
+
+SConscript('apps/SConscript')

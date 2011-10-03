@@ -1,0 +1,13 @@
+{
+   "info" : ["Lim et al. (2012), J. Phys. Chem. B, 116 203-210 (cholesterol)",
+             "Klauda et al. (2012), J. Phys. Chem. B, 116  9424-9431 (PUFA)",
+             "Klauda et al. (2010), J. Phys. Chem. B, 114, 7830-7843 (lipids)",
+             "parameter sets obtained from http://mackerell.umaryland.edu/download.php?filename=CHARMM_ff_params_files/toppar_c36_aug12.tgz"],
+   "vdw_func" : "LJ12_6_sig_epsilon",
+   "vdw_comb_rule" : "ARITHMETIC/GEOMETRIC",
+   "exclusions" : 4,
+   "es_scale" : [0.0, 0.0, 1.0],
+   "lj_scale" : [0.0, 0.0, 1.0],
+   "plugins" : ["bonds", "angles", "ureybradley", "propers", "impropers", "vdw1", "exclusions", "mass", "vdw2"],
+   "nbfix_identifier" : "charmm"
+}

@@ -1,0 +1,10 @@
+#!/usr/bin/garden-exec
+#{
+# source `dirname $0`/../share/env.sh
+# garden load ambertools/17.8-07c7/lib-python
+# exec python $0 "$@"
+#}
+
+import viparr.ffconverter.convert.amber
+viparr.ffconverter.convert.amber.main()
+

@@ -1,0 +1,35 @@
+{
+    "info" : [
+        "Forcefield generated using iviparr",
+        "Version: viparr/4.4.0",
+        "Timestamp: Tue Apr 23 14:31:03 2013",
+        "User: 12959:fanzho:Zhou Fan,nystaff",
+        "Workdir: /u/nyc/fanzho/p4/sw/forcefields/viparr4/test/.",
+        "Cmdline: ../objs/Linux/x86_64/bin/iviparr -s not water -f charmm27 out.dms iviparr_ff_ww"
+    ], 
+    "vdw_func" : "lj12_6_sig_epsilon", 
+    "vdw_comb_rule" : "arithmetic/geometric", 
+    "exclusions" : 4, 
+    "es_scale" : [
+        0.0,
+        0.0,
+        1.0
+    ], 
+    "lj_scale" : [
+        0.0,
+        0.0,
+        1.0
+    ], 
+    "plugins" : [
+        "bonds",
+        "angles",
+        "ureybradley",
+        "propers",
+        "impropers",
+        "vdw1",
+        "exclusions",
+        "cmap",
+        "mass",
+        "scaled_pair_overrides"
+    ]
+}

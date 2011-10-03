@@ -1,0 +1,2 @@
+import sconsutils
+sconsutils.build()

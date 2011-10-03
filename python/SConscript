@@ -1,0 +1,29 @@
+Import('env')
+Import('libviparr')
+
+env=env.Clone()
+env.Append( 
+        CPPPATH=['../src'],
+        LIBS=['viparr'],
+        PYTHON27_LIBS=['boost_python27'],
+        PYTHON35_LIBS=['boost_python35'],
+        PYTHON36_LIBS=['boost_python36'],
+        PYTHON37_LIBS=['boost_python37'],
+        )
+
+pymodfiles='''
+compile_plugins.cxx
+export_ff.cxx
+forcefield.cxx
+import_ff.cxx
+merge_ff.cxx
+parameter_matcher.cxx
+pattern.cxx
+pymod.cxx
+rules.cxx
+templated_system.cxx
+typers.cxx
+'''.split()
+
+pyext=env.AddPythonExtension('_viparr', pymodfiles, prefix='viparr')
+env.AddPythonModule('__init__.py', prefix='viparr')

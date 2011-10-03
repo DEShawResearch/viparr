@@ -1,0 +1,308 @@
+Release Notes:
+    4.6.17  - Recognize Na+, Cl-, K+, Ca2+, Mg2+ in viparr-neutralize.
+            - Switch to python3.7.
+
+    4.6.16  - Removed --hmr option.  Will be replaced by dms-hmr in msys.
+            - fixed overzealous external-bond addition for a few templates in viparr-convert-charmm.py
+            - removed any reference to a specific viparr-ff module
+    4.6.15  - Added viparr-rigidify.
+              Bump megamodule dependencies.
+    4.6.14  - improvements to charmm template patching in viparr-convert-charmm.py
+    4.6.13  - Make ligand file parameterization use non-exhaustive matching by
+              default; expose stereo options.
+
+    4.6.12  - keep system atomnames/resnames and atom order as much as possible within ApplyLigandForcefield
+            - give warning (not error) if there were no ligands selected for ApplyLigandForcefield
+    4.6.11  - bumped ambertools and added a few improvements the the ff converters
+    4.6.10  - added experimental support for parameterizing with ligand dms files.
+    4.6.9   - fixed broken interface (typo)
+    4.6.8   - support multiterm dihedral conversion from amber prmtops
+            - convert atom ids returned from GetBondsAnglesDihedrals into atoms in amber conversion utility
+    4.6.7   - fix for properly checking for and adding reversable parameter types
+            - properly add placeholder bonds when reading amber prepin files for amino_acids 
+            - split charge symmetrization code into two parts to simplfy common case
+    4.6.6   - Added python bindings for GetBondsAnglesDihedrals.
+            - DESRESCode#3710: Fixed draw_template, added residue support.
+            - Bump viparr-ff to 1.9.1.
+
+    4.6.5   - python3 support.
+    4.6.4   - DESRESCode#3487
+    4.6.3   - FIXED: ffconverter problems introduced in 4.6.1
+    4.6.2   - DESRESCode#3541
+    4.6.1   - IMPROVED: ffconverters
+    4.6.0   - remove destype functionality.
+              Flexible msys dependency (interop with msys/1.7.2xx).
+              Fix broken Forcefield.resetTyper method.
+
+    4.5.36  - simtools-dependencies/010.
+    4.5.34  - iviparr crash fix
+    4.5.33  - simtools-dependencies/008
+    4.5.32  - simtools-dependencies/007, no plugin message
+    4.5.30  - Build against simtools-dependencies 003
+    4.5.29  - Moved to simtools-dependencies (DESRESCode#2843)
+    4.5.28  - ADDED: hydrogen mass repartition with --hmr (DESRESCode#2941)
+            - Moved to simtools-dependencies (DESRESCode#2843)
+    4.5.27  - FIXED: viparr --help output (DESRESCode#2782)
+    4.5.26  - BURNED
+    4.5.25  - IMPROVED: viparr_solvate handles large solvent molecules.
+                        (DESRESCode#2779).
+    4.5.24  - FIXED: viparr accidentally linked against libnvidia
+    4.5.23  - IMPROVED: iviparr automatically checks that a round-trip
+                        through viparr recovers the original DMS
+    4.5.22  - FIXED: broken libviparr.so dependencies and LDFLAGS for
+                     downstream modules
+    4.5.21  - IMPROVED: viparr_solvate fills to the edge of the box better
+                        (DESRESCode#2677)
+    4.5.20  - BUMPED: desmond-dependencies/1.08
+    4.5.19  - BUMPED: desmond-dependencies/1.07
+    4.5.18  - BUMPED: desmond-dependencies/1.06
+    4.5.17  - BUMPED: msys/1.7.132
+              FIXED: viparr_solvate for uncentered systems (DESRESCode#2560)
+              FIXED: viparr_neutralize was nondeterministic.
+
+    4.5.15  - BUMPED: msys/1.7.129
+              IMPROVED: typification performance on large systems
+    4.5.14  - IMPROVED: Performance of vsite optimization (DESRESCode#2423)
+    4.5.13  - FIXED: Garden conflicts when running viparr
+              FIXED: Python API documentation build
+    4.5.12  - IMPROVED: Rigidify certain destype forcefields by
+                        default
+              IMPROVED: Use all-python destype typification flow (no
+                        subprocessing)
+    4.5.11  - FIXED: Missing improper_trig terms DESRESCode#2399
+    4.5.10  - IMPROVED: viparr will automatically recognize and load a
+                        destype format forcefield
+              FIXED: DESRESCode#2395 viparr --help prints the list of
+                        all available forcefields
+    4.5.9   - ADDED: ApplyAutogenPlugins from Python 
+    4.5.8   - viparr takes a '--pdff2' argument, indicating that the
+              given forcefield is a destype-format forcefield
+    4.5.7   - viparr is now a python program that calls the program
+              formerly known as viparr, which allows extra pre- and
+              post-processing.
+    4.5.6   - Bump to msys/1.7.111
+    4.5.5   - Add support for Ca to viparr_neutralize.
+              Use msys.MassForElement instead of less precise hard-coded masses.
+              Bump to msys/1.7.100.
+    4.5.4   - assign_smarts_atomtypes, a standalone tool for SMARTS
+              atomtyping
+    4.5.3   - msys/1.7.95 to fix lpsolve segfault
+    4.5.2   - Burned
+    4.5.1   - Burned
+    4.5.0   - CHANGED: Unrecognized vdw_functs will no longer cause
+                       an error; instead, they will be passed through
+                       unmodified
+              IMPROVED: viparr.policies functions return proper msys
+                        python objects, not Boost.Python wrapper
+                        objects
+    4.4.36   - REMOVED: RDKit and OpenBabel SMARTS-typers
+               FIXED: Occasional segfaults when called from Python
+               IMPROVED: 10% performance improvement
+    4.4.35   - NEW: vdwsc14_exp_1145x catchall vdw_funct for pdff2x
+                    forcefields
+    4.4.34   - FIXED: Empty zone at the edge of box should take
+               hydrogens as well as oxygens into account
+    4.4.33   - FIXED: viparr_solvate put water molecules too close to
+               the edge of the box, leading to close periodic
+               contacts. Use the -w option to control the padding.
+    4.4.32   - Burned
+    4.4.31   - Burned
+    4.4.30   - DESRESCode#2079: viparr_neutralize incorrectly reported
+               mutliple waters in the same residue if the water model
+               had > 3 sites per water
+    4.4.29   - msys/1.7.79 to fix segfaults
+             - DESRESCode#2080: solvate --minimize is back, but beware
+               of periodic interactions once the protein rotates away
+               from starting configuration
+    4.4.27   - LC1 virtuals for Alex-style forcefields
+    4.4.26   - Bump to msys/1.7.68
+             - Consolidated forcefield naming policies into
+               policies.hxx
+             - Exposed policies in the Python API
+             - viparr_neutralize now dies with error when a water
+               residue has more than one molecule.
+    4.4.25   - Fix viparr_neutralize behavior when the "keep" atomsel
+               contains ions.
+               Make viparr_{neutralize,solvate} create only a single ct.
+
+    4.4.24   - Bump to msys/1.7.62; --rename-atoms now works with
+               SMARTS-based forcefields; some additions to the Python
+               interface  
+    4.4.23   - Fixed a rare bug where the name of an unmatched residue
+               is misreported
+    4.4.22   - DESRESCode#1907: support vdwsc14_exp_1145x_expaqm
+    4.4.21   - DESRESCode#1905: names of dms tables now come from the
+               NAME of the autogen plugin, not the FILENAME
+    4.4.20   - DESRESCode#1905: run pdff2 plugin whenever there are
+               autogen plugins
+    4.4.19   - DESRESCode#1888:viparr_neutralize dies with error for
+               unparameterized systems instead of silently
+               doing the wrong thing.              
+    4.4.18   - Burned.
+    4.4.17   - Fixed a bug in fingerprinting: spurious counts were
+               being reported due to an out-of-bounds index.
+    4.4.16   - Fixed a bug in fingerprinting: cached matches were not
+               being counted.
+    4.4.15   - DESRESCode#1849: Added support for fingerprinting
+               Alex-style forcefields, using the option
+               --verbose-matching.
+
+    4.4.14   - DESRESCode#1848: Removed check for duplicates in
+               getPriorityMap
+             - DESRESCode#1842: viparr_solvate has --minimize option.
+
+    4.4.13   - Bump to msys/1.7.43
+             - DESRESCode#1842: Added minimum bounding-box code.
+             - Friendlier error before dying when a VDW function can't be found.
+             - Improved templates when atom.name is empty.
+             - Added --thickness option to viparr_solvate.
+
+    4.4.12   - When compile_plugins=false, don't call AddPairsTable 
+               (DESRESCode#1810)
+             - Bump msys to 1.7.38
+             - Add "from_tables" vdw function, to indicate that nonbonded 
+               functional forms are to be determined by the tables present 
+               in the system.
+             - Bugs fixed re:PDFF2 support through the ffdevel-viparr plugin 
+               module.
+
+    4.4.11   - Workaround and graceful exit for segmentation fault when 
+               assigning bond orders in very large systems (DESRESCode#1803).
+             - Typical workloads should get faster because of a more efficient 
+               version of msys::AssignBondOrderAndFormalCharge.
+
+    4.4.10   - PDFF2 support using ffdevel-viparr plugin module; a friendly 
+               warning when total charge changes too much.
+
+    4.4.9    - Burned label.
+
+    4.4.8    - Improved error message when multiple matches found.
+
+    4.4.7    - Improved error messages and added '--verbose-matching' option 
+               (DESRESCode#1796, #1797)
+
+    4.4.6    - bump msys to msys/1.7.34
+
+    4.4.5    - Added duplicateWithExtension to SmartsTree class, exposed in Python API
+             - Fix MAE export (DESRESCode#1766).
+
+    4.4.4    - Make graphviz a bin module prereq for draw_template
+             - bump msys to msys/1.7.23
+    4.4.3    - Add autogen-plugin support for BOOPVirtual(1)-type virtual shifts
+             - Allow hierarchical atom-types in parameter matching for scored SMARTS-atomtyping and set this as default behavior
+             - Add optional "hierarchical_atomtypes" boolean input to rules file
+             - Change Neutralize Python function to create and return a clone of the input system
+    4.4.0    - Refactor plugins to separate matching from compilation of derived tables and atom properties
+             - Remove plugin reapply function and plugin table dependencies from the API
+             - Do not merge improper_trig and dihedral_trig params in FF import; perform merge at the end of viparr execution
+             - Do not merge ureybradley_harm and stretch_harm params in FF import; perform merge at the end of viparr execution
+             - Disambiguate cmap tables if defined in multiple forcefields
+             - Fix bug in 'scaled_pair_overrides' plugin
+             - added --without-bond-orders option
+             - updated to msys/1.7.16
+    4.3.11   - Change Forcefield API for accessing and modifying parameters
+    4.3.10   - viparr_neutralize requires either a forcefield or --no-ff.
+             - Allow "type" to be a ' '-concatenated string in parameter files
+    4.3.9    - Add support for score-based SMARTS matching with 'score_based_atomtypes' in rules file
+             - Add support for non-fatal parameter matching with 'fatal' flag in rules file
+             - Add support merging of SMARTS-based forcefields with templates-based forcefields
+             - Remove bond types from parameter tables in iviparr output
+             - Update to msys/1.7.1
+    4.3.8    - get 4.3.7 bug fix, but use a distributably numpy and msys with a distributable numpy, using 8 because 7_1 wouldn't work.
+    4.3.7    - ***Fix bug in writing of dihedral_trig parameters, introduced in version 4.3.3***
+             - Update to msys/1.6.23, compute aromaticity for all systems
+    4.3.6    - Fix missing nbfix_identifier bug in iviparr
+             - Update to msys/1.6.22
+    4.3.5    - Print which template matched each fragment
+             - Minor change to Python Graph interface
+    4.3.4    - Update to msys/1.6.20
+             - Duplicate param in pairs param table when reapplying pairs parameters, if that param is shared
+    4.3.3    - Add iviparr executable
+             - Add scaled_pair_overrides plugin
+             - Move SMARTS parser and matcher to msys; small changes and bug fixes to SMARTS matcher
+             - Require identical dihedral params to be consecutive in the param table, remove WARNING messages
+             - Add --random-seed option to viparr_neutralize
+             - Require rules file in forcefields that are not -m or -a patches
+             - Update to msys/1.6.19
+    4.3.2    - Add in-house implementation of SMARTS parser and matcher
+             - Update to gcc/4.7.2-23A, boost/1_51_0-28A, Python/2.7.3-07A, numpy/1.6.2-31A, msys/1.6.15, plugin/0.3.32-D93, dessert/2.0.50-D93, RDKit/2011_12_1-03A, fastjson/1.4.7
+             - Bug fixes for pyviparr executable
+             - Fix multiple drudes bug introducted in 4.3.1
+             - Throw an error when multiple parameters define the same pattern to match
+    4.3.1    - Add support for multiple virtuals on the same atom and drudes on virtuals
+             - Add support for destype-style auto-generated plugins
+             - Add support for destype-style forcefield modes
+             - Require "vdw2" plugin for NBFIX, to break compatibility with previous viparr versions
+             - Update to msys/1.6.6
+    4.3.0    - Integrate viparr-alex branch:
+                 - Separate 'exclusions' plugin into individual plugins
+                 - Separate 'virtuals' plugin into regular and shift plugins
+                 - Add 'vdw_exchange_dispersion' plugin
+                 - Add reapply function, table dependencies, and plugin prerequisites to Plugin class
+                 - Implement reapply function for all plugins with dependencies
+                 - Add GenerateStandardPlugin function to Python interface
+                 - Add pyviparr executable, load plugins from VIPARR_PYPLUGIN_PATH
+                 - Add Forcefield diff functionality
+                 - Add ImportForcefieldFamily/ExportForcefieldFamily functionality
+             - Update unit tests
+             - Add 'selection' option to build constraints
+             - Add support for nbfix and "vdw2" tables
+             - Add --append option to MergeForcefields and -m and -a options to viparr
+             - Support MergeForcefields for SMARTS-typer forcefields
+             - Add more informative output in viparr executable, and check each fragment for multiple forcefield matches
+             - Rewrite of AddSystemTables and ImportParams to fully support parametrization of a subset of fragments
+             - Update to msys/1.6.2
+             - Add construct_template command-line tool
+    4.2.10   - Add numpy prereqs to viparr/*/lib-python and load numpy module in viparr/*/bin
+             - Auto-run Python unit tests in desres-install
+    4.2.9    - Update to msys/1.5.8
+             - Add 'selection' option to ExecuteViparr function in Python
+             - Add FixMasses to C++ and Python interfaces and --fix-masses option to executable
+    4.2.8    - Update to msys/1.5.5 
+             - Add --selection option to viparr executable
+             - Add AddSystemTables to C++ and Python interfaces
+    4.2.7    - Update to msys/1.5.2
+             - Add TemplatedSystem::clone
+             - Pretty-print forcefield export files
+    4.2.6    - Update to msys/1.5.0
+    4.2.5    - Add support for memo entry in "atoms" fields of template files
+             - Update to msys/1.4.7
+    4.2.3    - Change Plugin, VDWCombRule, SystemToPattern, TypeToPattern, and Permutation
+               function-wrapping classes to abstract base classes, with separate subclasses
+               for C++ and Python wrappers
+             - Remove boost::python dependency from lib-viparr
+             - Move MergeVDW, RegisterVDWFunc, and RegisterVDWCombRule into Rules class
+             - Update to msys/1.4.5
+
+    4.2.2    - Improvements in bond order assigner
+             - Enforce rows of parameter files to all match or all not match bond types
+             - Updates to Provenance
+
+    4.2.1    - Clarified error message for atomtyping failure
+             - Fixed identification of solute charge in viparr_neutralize
+             - Added support for incremental atomtyping in SMARTS typer
+             - Optimize virtual site definitions if constraints are generated
+
+    4.2.0    - Added support for SMARTS matching using RDKit
+             - Added SSSR detection algorithm
+             - Added viparr_neutralize and viparr_solvate tools
+
+    4.1.3    - Use msys/1.2.1 so that glue and atom selection macros are
+               preserved.
+             - Store template names in residue name field
+             - Added ExecuteViparr and ReorderIDs to Python interface
+             - Added support for C++ plugins
+
+    4.1.2    - Updated to msys/1.0.13 to enable better residue detection
+               Abort on unrecognized forcefield plugins
+               Added pseudopol_fermi plugin
+               Fixed bug in merge_forcefields
+
+    4.1.1    - allow forcefield import without rules
+             - allow residues spanning multiple fragments
+             - changes to merge_forcefields
+             - bug fix to treat -f and -d options in order
+    4.1.0    - major overhaul and bug fixes to bond-order and formal-charge assigner
+             - bug fix to handle unsupported plug-ins
+    4.0.0    - initial release
+

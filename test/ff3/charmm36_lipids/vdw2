@@ -1,0 +1,14 @@
+[
+   {"type": ["CRL1", "HAL2"], "params": {"sigma": 5.96902141154027297500, "epsilon": 0.0321}, "memo": ""},
+   {"type": ["HGA1", "HAL2"], "params": {"sigma": 4.77521712923221838000, "epsilon": 0.0359}, "memo": ""},
+   {"type": ["CRL2", "HAL2"], "params": {"sigma": 5.98683938590307976000, "epsilon": 0.0415}, "memo": ""},
+   {"type": ["HGA2", "HAL2"], "params": {"sigma": 4.77521712923221838000, "epsilon": 0.0317}, "memo": ""},
+   {"type": ["CRL1", "HAL1"], "params": {"sigma": 5.96902141154027297500, "epsilon": 0.0293}, "memo": ""},
+   {"type": ["HGA1", "HAL1"], "params": {"sigma": 4.77521712923221838000, "epsilon": 0.0329}, "memo": ""},
+   {"type": ["CRL2", "HAL1"], "params": {"sigma": 5.98683938590307976000, "epsilon": 0.0379}, "memo": ""},
+   {"type": ["HGA2", "HAL1"], "params": {"sigma": 4.77521712923221838000, "epsilon": 0.0289}, "memo": ""},
+   {"type": ["CRL1", "CTL1"], "params": {"sigma": 7.14500771948552078500, "epsilon": 0.0275}, "memo": ""},
+   {"type": ["HGA1", "CTL1"], "params": {"sigma": 5.95120343717746619000, "epsilon": 0.0308}, "memo": ""},
+   {"type": ["CRL2", "CTL1"], "params": {"sigma": 7.16282569384832757000, "epsilon": 0.0355}, "memo": ""},
+   {"type": ["HGA2", "CTL1"], "params": {"sigma": 5.95120343717746619000, "epsilon": 0.0271}, "memo": ""}
+]

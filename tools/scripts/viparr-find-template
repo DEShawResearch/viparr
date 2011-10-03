@@ -1,0 +1,91 @@
+#!/usr/bin/garden-exec
+#{
+# source `dirname $0`/../share/env.sh
+# exec python $0 "$@"
+#}
+
+
+import sys, os, argparse
+import glob
+sys.path.insert(0,os.path.join(os.path.dirname(__file__),'..','lib','python'))
+VIPARR_BIN_DIR = os.path.join(os.path.dirname(__file__),'..','bin')
+import msys
+import viparr
+
+
+class simpleFF(object):
+    def __init__(self, ffdir):
+        self.name=ffdir
+        self.templates=[]
+        for tfile in glob.glob(os.path.join(ffdir, 'templates*')):
+            self.templates.extend(viparr.ImportTemplates(tfile))
+        if(len(self.templates)==0):
+            print "Did not find any templates in directory: "+ffdir
+
+class FFDirAction(argparse.Action):
+    def __call__(self, parser, namespace, value, option_string):
+        if not os.path.isdir(value):
+            raise argparse.ArgumentError(self, "'%s' not found or is not a directory" % value)
+
+        startpath=os.path.realpath(value)
+
+        dirlist=[]
+        if(namespace.recursive):
+            for root, dirs, files in os.walk(startpath):
+                if any(file.startswith('templates') for file in files):
+                    dirlist.append(os.path.abspath(root))
+            if(len(dirlist)==0):
+                raise RuntimeError("Did not find any forcefield templates in any subdirectories of: "+startpath)
+        else:
+            dirlist=[startpath]
+        for d in dirlist:
+            print 'Importing templates from %s' % d
+            namespace.ffdata.append(simpleFF(d))
+
+class FFNameAction(argparse.Action):
+    def __call__(self, parser, namespace, value, option_string):
+        src = viparr.find_forcefield(value)
+        print 'Importing templates from %s' % src
+        namespace.ffdata.append(simpleFF(src))
+
+
+def check_templates_for_strucure(ffdata, mol, selection):
+    atoms= mol.select(selection)
+    assert(len(atoms))
+    tsys=viparr.TemplatedSystem(mol)
+
+    print "\nBegining Search for selection %s"%(selection)
+    for data in ffdata:
+        #print data.name
+        typer=viparr.TemplateTyper()
+        for t in data.templates:
+            typer.addTemplate(t)
+            #print t.name,t.hash
+        matches,err_msg=typer.matchFragment(tsys, atoms)
+        if(len(matches)==0): continue
+        print "Template found in: %s as %s"%(data.name, str([t[0].name for t in matches]))
+
+
+def main():
+    parser0 = argparse.ArgumentParser(add_help=False)
+    parser0.add_argument("--recursive", "-r", action='store_true', default=False,
+                        help="recursivly search --ffdir for forcefield directories")
+    ns,extraArgs=parser0.parse_known_args()
+
+    parser = argparse.ArgumentParser(description=__doc__, parents=[parser0])
+    parser.add_argument("input", help="input dms file")
+    parser.add_argument("--ffdir", "-d", dest='ffdata', default=[], action=FFDirAction,
+                        metavar='ffdir', help="explicit forcefield directory")
+    parser.add_argument("--ffname" ,"-f", dest='ffdata', action=FFNameAction,
+                        metavar='ffname', help="forcefield directory in VIPARR_FFPATH")
+    parser.add_argument("--selection" ,"-s", default='all',
+                        help="selection of atoms to find template for (must be connected) (Default: all)")
+    args=parser.parse_args(args=extraArgs, namespace=ns)
+
+    mol = msys.Load(args.input, structure_only=True)
+    check_templates_for_strucure(args.ffdata, mol, args.selection)
+
+if __name__=="__main__":
+    main()
+
+# vim: filetype=python

@@ -1,0 +1,53 @@
+#!/usr/bin/garden-exec
+#{
+# source `dirname $0`/../share/env.sh
+# exec python $0 "$@"
+#}
+from __future__ import print_function
+
+import viparr
+import msys
+import sys
+import os
+
+def warn_if_using_deprecated_script_name():
+    exe = os.path.basename(sys.argv[0])
+    if not exe.startswith('viparr'):
+        print("WARNING: this script name is deprecated; please use 'viparr-build-constraints'", file=sys.stderr)
+
+def parse_args():
+    from argparse import ArgumentParser
+    parser = ArgumentParser(description=__doc__)
+    parser.add_argument("ifile",
+            help="Input file")
+    parser.add_argument("-o", "--output",
+            help="Output file (default: overwrite input file")
+    parser.add_argument("-s", "--selection", default="all",
+            help="selection of atoms to build constraints")
+    parser.add_argument("-k", "--keep", action="store_true",
+            help="keep bonded terms that overlap constraints")
+    parser.add_argument("-x", "--exclude", action="append", default=[],
+            help="don't build constraint (hoh, ah1, ...)")
+    parser.add_argument("-v", "--verbose", action="store_true",
+            help="extra verbosity")
+    return parser.parse_args()
+
+def main():
+    warn_if_using_deprecated_script_name()
+    args = parse_args()
+    if args.verbose:
+        print("Reading", args.ifile)
+    mol = msys.Load(args.ifile)
+    atoms = mol.select(args.selection)
+    viparr.BuildConstraints(mol, atoms, keep=args.keep, exclude=args.exclude,
+            verbose=args.verbose)
+    mol.coalesceTables()
+    ofile = args.output or args.ifile
+    if args.verbose:
+        print("Writing", ofile)
+    msys.Save(mol, ofile)
+
+if __name__ == '__main__':
+    main()
+
+# vim: filetype=python

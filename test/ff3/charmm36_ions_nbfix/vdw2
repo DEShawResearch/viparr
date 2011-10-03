@@ -1,0 +1,8 @@
+[
+   {"type": ["Na+", "Cl-"], "params": {"sigma": 6.6478862347632114835, "epsilon": 0.083875}, "memo": "From osmotic pressure calibration, J. Phys.Chem.Lett. 1:183-189"},
+   {"type": ["K+", "Cl-"], "params": {"sigma": 7.2715153374614489585, "epsilon": 0.114236}, "memo": "From osmotic pressure calibration, J. Phys.Chem.Lett. 1:183-189"},
+   {"type": ["Na+", "OC"], "params": {"sigma": 5.6839338217353644150, "epsilon": 0.075020}, "memo": "For prot carboxylate groups"},
+   {"type": ["Na+", "OCL"], "params": {"sigma": 5.6839338217353644150, "epsilon": 0.075020}, "memo": "For lipid carboxylate groups"},
+   {"type": ["Na+", "OC2D2"], "params": {"sigma": 5.6839338217353644150, "epsilon": 0.075020}, "memo": "For carb carboxylate groups"},
+   {"type": ["Na+", "OG2D2"], "params": {"sigma": 5.6839338217353644150, "epsilon": 0.075020}, "memo": "For CGenFF carboxylate groups"}
+]

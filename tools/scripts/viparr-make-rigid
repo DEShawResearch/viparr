@@ -1,0 +1,117 @@
+#!/usr/bin/env garden-exec
+#{
+# source `dirname $0`/../share/env.sh
+# exec python $0 "$@"
+#}
+
+import msys, sys, os.path
+from math import sqrt, cos
+from numpy import deg2rad
+
+def main(paths):
+    infile = os.path.realpath(paths[0])
+    if len(paths) == 1:
+        system = os.path.basename(infile).split('.')[0]
+        outfile = os.path.dirname(infile) + os.path.sep + system + 'R.dms'
+    else:
+        outfile = paths[1]
+
+    print "Rigidifying:",infile
+    print "Output: ", outfile
+    
+    m = msys.LoadDMS(infile)
+    
+    #TODO: more robust (other angle tables?)
+    tabname = 'angle_harm'
+    if tabname not in m.table_names: raise Exception, "Forcefield doesn't contain any angle terms"
+    angles = m.table(tabname)
+    
+    #TODO: Make this nicer
+
+    tabname = 'constraint_ah1'
+    if tabname in m.table_names:
+        tab = m.table(tabname)
+        tabr = m.addTable(tabname + 'R',2)
+        tabr.category='constraint'
+        tabr.params.addProp('r1',float)
+        for t in tab.terms:
+            p = tabr.params.addParam()
+            p['r1'] = t['r1']
+            tabr.addTerm(t.atoms,p)
+        tab.remove()
+        
+    # AH2R
+    tabname = 'constraint_ah2'
+    if tabname in m.table_names:
+        tab = m.table(tabname)
+        tabr = m.addTable(tabname + 'R',3)
+        tabr.category = "constraint"
+        tabr.params.addProp('r1',float)
+        tabr.params.addProp('r2',float)
+        tabr.params.addProp('r3',float)
+        for t in tab.terms:
+            p = tabr.params.addParam()
+            p['r1'] = t['r1']
+            p['r2'] = t['r2']
+            p['r3'] = side(t['r1'],t['r2'],angle(angles,t.atoms))
+            tabr.addTerm(t.atoms,p)
+            
+        tab.remove()
+    # AH3R
+    tabname = 'constraint_ah3'
+    if tabname in m.table_names:
+        tab = m.table(tabname)
+        tabr = m.addTable(tabname + 'R',4)
+        tabr.category = 'constraint'
+        tabr.params.addProp('r1',float)
+        tabr.params.addProp('r2',float)
+        tabr.params.addProp('r3',float)
+        tabr.params.addProp('r4',float)
+        tabr.params.addProp('r5',float)
+        tabr.params.addProp('r6',float)
+            
+        for t in tab.terms:
+            p = tabr.params.addParam()
+            p['r1'] = t['r1']
+            p['r2'] = t['r2']
+            p['r3'] = t['r3']
+            p['r4'] = side(t['r1'],t['r2'],angle(angles,[t.atoms[0],t.atoms[1],t.atoms[2]]))
+            p['r5'] = side(t['r1'],t['r3'],angle(angles,[t.atoms[0],t.atoms[1],t.atoms[3]]))
+            p['r6'] = side(t['r2'],t['r3'],angle(angles,[t.atoms[0],t.atoms[2],t.atoms[3]]))
+            tabr.addTerm(t.atoms,p)
+            
+        tab.remove()
+
+    # Delete all the extra parameters
+    m.coalesceTables()
+    m = m.clone()
+
+    # Output
+    msys.SaveDMS(m,outfile) 
+    
+    
+    
+def side(a,b,theta):
+    return sqrt(a*a+b*b-2*a*b*cos(deg2rad(theta)))
+## This also marks the angle as constrained
+def angle(angles,atoms):
+    alist = angles.findWithOnly(sorted(atoms, key=lambda a:a.id))
+    if len(alist) != 1: 
+        raise Exception, "Expected one angle involving atoms " + str([a.id for a in atoms]) + " but found " + str(len(alist))
+    alist[0]['constrained']=1 # Mark constrained
+    return alist[0]['theta0']
+
+if __name__=="__main__":
+    #TODO: optparse etc.
+    def printhelp():
+        print >> sys.stderr, "Usage: %s in.dms [out.dms]" % sys.argv[0]
+        print >> sys.stderr, "Replaces constraint_ah1, _ah2, and _ah3 constraints with alternative\n" \
+        "constraint_ah1R, _ah2R, and _ah3R constraints."
+        print >> sys.stderr, "If out.dms is not specified, appends 'R' to the input filename"
+    if len(sys.argv) == 2 and sys.argv[1] in ["-h", "--help"]:
+        printhelp()
+        exit(0)
+    if len(sys.argv) not in [2,3]:
+        printhelp()
+        exit(1)
+    main(sys.argv[1:])

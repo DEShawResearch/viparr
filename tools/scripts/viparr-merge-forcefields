@@ -1,0 +1,62 @@
+#!/usr/bin/garden-exec
+#{
+# source `dirname $0`/../share/env.sh
+# exec python $0 "$@"
+#}
+
+from __future__ import print_function
+import argparse
+import os
+import viparr
+
+class Action(argparse.Action):
+    def __init__(self, option_strings, dest, nargs=None, **kwds):
+        argparse.Action.__init__(self, option_strings, dest, **kwds)
+
+    def __call__(self, parser, namespace, value, option_string):
+        dest = getattr(namespace, self.dest)
+        dest.append((option_string, value))
+
+def parse_args():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("outdir",
+            help="Destination directory")
+    parser.add_argument("-d", "--ffdir",  action=Action, dest='ff', default=[])
+    parser.add_argument("-f", "--ffname", action=Action, dest='ff')
+    parser.add_argument("-m", "--merge",  action=Action, dest='ff')
+    parser.add_argument("-a", "--append", action=Action, dest='ff')
+    args = parser.parse_args()
+    ffargs = {'-d', '--ffdir', '-f', '--ffname'}
+    if not args.ff:
+        parser.error("Missing forcefield arguments")
+    if args.ff[0][0] not in ffargs:
+        parser.error("Specify parent forcefield first with '-d' or '-f'")
+    if any(ff[0] in ffargs for ff in args.ff[1:]):
+        parser.error("Specify only -a or -m following initial forcefield")
+    return parser.parse_args()
+
+def main():
+    args = parse_args()
+    ff_path = viparr.find_forcefield(args.ff[1])
+    ff = viparr.ImportForcefield(ff_path)
+
+    # read patches
+    for f in args.ff[1:]:
+        if f[0] in ('-m', '--merge'):
+            patch = viparr.ImportForcefield(f[1], False)
+            print("Merging '%s'" % f[1])
+            viparr.MergeForcefields(ff, patch, append_only=False)
+        elif f[0] in ('-a', '--append'):
+            patch = viparr.ImportForcefield(f[1], False)
+            print("Appending '%s'" % f[1])
+            viparr.MergeForcefields(ff, patch, append_only=True)
+        else:
+            assert False
+
+    print("Writing '%s'" % args.outdir)
+    viparr.ExportForcefield(ff, args.outdir)
+
+if __name__ == '__main__':
+    main()
+
+# vim: filetype=python

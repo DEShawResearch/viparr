@@ -1,0 +1,9 @@
+#!/usr/bin/garden-exec
+#{
+# source `dirname $0`/../share/env.sh
+# exec python $0 "$@"
+#}
+
+import viparr.cli
+viparr.cli.main()
+

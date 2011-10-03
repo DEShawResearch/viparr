@@ -1,0 +1,10 @@
+#!/usr/bin/garden-exec
+#{
+# source `dirname $0`/../share/env.sh
+# garden load msys/1.7.245c7/bin
+# exec python $0 "$@"
+#}
+
+import viparr.iviparr
+viparr.iviparr.main()
+

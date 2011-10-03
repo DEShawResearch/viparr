@@ -1,0 +1,11 @@
+{
+   "info" : ["Wang et al. (2000), J. Comp. Chem. 21, 1049-1074",
+             "Parameter sets obtained from http://ambermd.org/amber10.ffparms.tar.bz2",
+             "viparr forcefield generated using leaprc.ff99"],
+   "vdw_func" : "LJ12_6_sig_epsilon",
+   "vdw_comb_rule" : "ARITHMETIC/GEOMETRIC",
+   "exclusions" : 4,
+   "es_scale" : [0.0, 0.0, 0.8333],
+   "lj_scale" : [0.0, 0.0, 0.5],
+   "plugins" : ["bonds", "angles", "propers", "impropers", "vdw1", "exclusions", "mass"]
+}

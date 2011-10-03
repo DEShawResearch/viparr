@@ -1,0 +1,91 @@
+#!/bin/sh
+eval "$(/usr/bin/garden-exec)" 
+set -e
+
+NAME=viparr
+DESCRIPTION="Builds forcefields"
+
+SCONS=scons/2.5.1-03c7
+GCC=gcc/6.3.0-01c7
+PYTHON=desres-python/2.7.15-08c7
+PYTHON3=desres-python/3.7.0-02c7
+SCONSUTILS=sconsutils/1.48c7
+
+loadmodules() {
+    garden load `cat $(dirname $0)/modules.txt`
+    MSYS=msys/$(echo $(basename $MSYS_PREFIX) | awk -F_ '{print $1}')
+    garden load \
+        $SCONS/bin \
+        $MSYS/lib \
+        $PYTHON3/bin \
+        $PYTHON/bin \
+        $GCC/bin \
+        $MSYS/lib-python \
+        $SCONSUTILS/lib-python \
+
+   export PYTHONVER=27,37
+}
+
+genmodules() {
+    # Python modules
+    cat << EOF > $GARDENDIR/lib-python
+prepend-path PYTHONPATH ${PREFIX}/lib/python
+EOF
+
+    cat << EOF > $GARDENDIR/lib-python3
+prepend-path PYTHONPATH ${PREFIX}/lib/python
+EOF
+
+    cat << EOF > $GARDENDIR/bin
+prepend-path PATH $PREFIX/bin
+EOF
+
+    # library
+    cat << EOF > $GARDENDIR/lib
+prereq $MSYS/lib
+prepend-path DESRES_MODULE_CPPFLAGS -I$PREFIX/include
+prepend-path DESRES_MODULE_LDFLAGS -L$PREFIX/lib 
+prepend-path DESRES_MODULE_LDFLAGS -Wl,-rpath,$PREFIX/lib
+EOF
+}
+
+genhelp() {
+    cat doc/source/release_notes.txt
+}
+
+case $1 in
+    --name)
+        echo $NAME
+        ;;
+    --version)
+        echo `src/version.py`c7
+        ;;
+    --exec)
+        shift
+	loadmodules
+        "$@"
+        ;;
+    --install)
+	loadmodules
+        nprocs=`nproc`
+        $0 --exec scons -j$nprocs install PREFIX=${PREFIX} OBJDIR=$TMPDIR
+
+        PYTHONPATH=$PREFIX/lib/python:$PYTHONPATH python2 test/python_tests.py
+        PYTHONPATH=$PREFIX/lib/python:$PYTHONPATH python3 test/python_tests.py
+        ./test/run.sh -v
+        $PREFIX/bin/viparr -h > /dev/null
+        $PREFIX/bin/viparr_neutralize -h > /dev/null
+        $PREFIX/bin/viparr_solvate -h > /dev/null
+        $PREFIX/bin/viparr-make-rigid -h > /dev/null
+
+        (cd doc && PYTHONPATH=$PREFIX/lib/python:$PYTHONPATH make clean html)
+
+        mkdir -p $PREFIX/doc
+        cp -r doc/build/* $PREFIX/doc
+	genmodules
+        genhelp > $METADIR/help.txt
+        ;;
+    # It's not an error if nothing matches.  desres-install may invent
+    # other arguments in the future.
+esac
+

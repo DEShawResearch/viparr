@@ -1,0 +1,22 @@
+Import('env')
+
+for f in Glob('scripts/*'):
+    env.AddScript(f.get_path())
+
+env.AddScript('build_constraints', 'scripts/viparr-build-constraints')
+
+env.AddPythonModule('cli.py', prefix='viparr')
+env.AddPythonModule('compare.py', prefix='viparr')
+env.AddPythonModule('iviparr.py', prefix='viparr')
+env.AddPythonModule('rigidify.py', prefix='viparr')
+env.AddPythonModule('neutralize.py', prefix='viparr')
+env.AddPythonModule('solvate/__init__.py', prefix='viparr/solvate')
+env.AddShare('solvate/h2o.dms')
+env.AddShare('solvate/h2o.tip3p.dms')
+
+for f in Glob('ffconverter/*.py'):
+    env.AddPythonModule(f.get_path(), prefix='viparr/ffconverter')
+
+for f in Glob('ffconverter/convert/*.py'):
+    env.AddPythonModule(f.get_path(), prefix='viparr/ffconverter/convert')
+
