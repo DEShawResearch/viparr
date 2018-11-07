@@ -49,7 +49,7 @@ class FFMergeAction(argparse.Action):
             raise argparse.ArgumentError(self, "No previous forcefield specified with -d/-f")
         target = namespace.fflist[-1]
 
-        src = find_forcefield(value)
+        src = viparr.find_forcefield(value)
         print("Importing forcefield patch from %s" % src)
         patch = viparr.ImportForcefield(src, False);
         viparr.MergeForcefields(target, patch)
