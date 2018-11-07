@@ -88,7 +88,7 @@ def addOrUpdateParameterData(viparrff, tname, pdicts, modify, multiterm, checkRe
         found2 = viparrff.findParams(tname, type=atypes2) if(atypes2 != atypes) else []
         if( len(found)>=0 and len(found2)==0 ):
             pass # atypes==atypes
-        elif( len(found1) > 0 and len(found2) >0):
+        elif( len(found) > 0 and len(found2) >0):
             err="Original and reversed parameter types both found in forcefield: "
             err+="table %s  new_entry %s  found_entry %s  found entry %s"%(tname, str(pdicts), str(found), str(found2))
             raise RuntimeError(err)

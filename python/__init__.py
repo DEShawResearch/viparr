@@ -396,7 +396,7 @@ class Forcefield(object):
             param = Forcefield.ParamTable(name).addParam(**kwds)
         if not Forcefield.HasParamTable(name) or \
                 param._ptr != self.ParamTable(name)._ptr:
-            raise RuntimeError("Parameter " + p.__repr__() + \
+            raise RuntimeError("Parameter " + repr(param) + \
                     " does not belong to this table")
         self._Forcefield.appendParams(name, [param.id])
         return param

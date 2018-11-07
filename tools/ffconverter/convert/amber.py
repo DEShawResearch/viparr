@@ -1055,15 +1055,15 @@ def main():
     parser.add_argument('--cleanTemplates', action='store_true', default=False,
                         help='''remove templates with missing atomtypes from templates file''')
 
-    if(use_extra_nbequiv_files):
-        nbfiles = args.nbequiv
-    else:
-        nbfiles = []
-
     print("CMD: "+" ".join(sys.argv))
     args = parser.parse_args()
     if(args.rcpath is None and len(args.parameters)==0 and len(args.templates)==0):
         parser.error('must provide -r, -p or -t options')
+
+    if(use_extra_nbequiv_files):
+        nbfiles = args.nbequiv
+    else:
+        nbfiles = []
 
     ffAmber = setAmberForcefieldFiles(args.rcpath, args.includes, args.parameters, args.templates,
                                       args.fftype, nbfiles, args.skipmissing, args.skipsolvents)
