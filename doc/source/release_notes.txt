@@ -1,4 +1,8 @@
 Release Notes:
+    4.7.1   - Fix typos.
+    4.7.0   - Replace usage of VIPARR3_FFDIR with VIPARR_FFPATH.
+            - Fix iviparr.
+
     4.6.17  - Recognize Na+, Cl-, K+, Ca2+, Mg2+ in viparr-neutralize.
             - Switch to python3.7.
 
