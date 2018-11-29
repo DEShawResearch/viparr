@@ -83,6 +83,8 @@ def parser():
                         help="Require bond stereo match in ligand input files")
     parser.add_argument('--match-ligand-tet-stereo', action='store_true',
                         help="Require tetrahedral stereo match in ligand input files")
+    parser.add_argument('--match-ligand-hydrogen', action='store_true',
+                        help="Require inchi hydrogen layer match in ligand input files")
     parser.add_argument('--exhaustive-ligand-matching', action='store_true',
                         help="Search all possible mappings of ligand inputs")
     parser.add_argument("--selection" ,"-s", default='all',
@@ -128,6 +130,7 @@ def run_viparr(args):
                 verbose=args.verbose_matching,
                 match_bond_stereo=args.match_ligand_bond_stereo,
                 match_tet_stereo=args.match_ligand_tet_stereo,
+                match_hydrogen=args.match_ligand_hydrogen,
                 exhaustive_matching=args.exhaustive_ligand_matching)
 
 

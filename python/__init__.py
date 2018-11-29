@@ -2784,6 +2784,7 @@ def ApplyLigandForcefields(system, ligands, selection='all',
                            exhaustive_matching=False,
                            match_bond_stereo=True,
                            match_tet_stereo=False,
+                           match_hydrogen=False,
                            verbose=False):
     ''' Apply forcefields from ligands to system
 
@@ -2793,6 +2794,7 @@ def ApplyLigandForcefields(system, ligands, selection='all',
         selection (str): atom selection for ligands in system
         match_bond_stereo: require matching double-bond stereo in inchi
         match_tet_stereo: require matching tetrahedral stereo in inchi
+        match_topology: require matching the hydrogen layer in inchi
 
     Returns:
         msys.System with new forcefield
@@ -2805,10 +2807,19 @@ def ApplyLigandForcefields(system, ligands, selection='all',
         in the input system, no guarantees can be made about preserving the
         atom order, although a best effort is made.
 
+        The match_hydrogen option turns on matching on the hydrogen layer.
+        This shouln't be necessary since we already do a Graph match to
+        determine a true match between template and ligand, and leaving
+        it off by default avoids problems with, e.g. charge imidazole
+        having an ambiguous formal charge assignment.
     '''
     def get_inchi(mol, sel='all'):
         lig = mol.clone('(%s) and atomicnumber > 0' % sel)
         inchi = msys.InChI(lig, SNon=False).string
+
+        if not match_hydrogen:
+            layers = inchi.split('/')
+            inchi = '/'.join(x for x in layers if x[0] not in 'h')
 
         if not match_bond_stereo:
             layers = inchi.split('/')
