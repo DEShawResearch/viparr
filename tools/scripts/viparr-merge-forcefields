@@ -7,6 +7,7 @@
 from __future__ import print_function
 import argparse
 import os
+import shutil
 import viparr
 
 class Action(argparse.Action):
@@ -25,6 +26,7 @@ def parse_args():
     parser.add_argument("-f", "--ffname", action=Action, dest='ff')
     parser.add_argument("-m", "--merge",  action=Action, dest='ff')
     parser.add_argument("-a", "--append", action=Action, dest='ff')
+    parser.add_argument("--clobber", action='store_true')
     args = parser.parse_args()
     ffargs = {'-d', '--ffdir', '-f', '--ffname'}
     if not args.ff:
@@ -33,11 +35,12 @@ def parse_args():
         parser.error("Specify parent forcefield first with '-d' or '-f'")
     if any(ff[0] in ffargs for ff in args.ff[1:]):
         parser.error("Specify only -a or -m following initial forcefield")
-    return parser.parse_args()
+    return args
 
 def main():
     args = parse_args()
-    ff_path = viparr.find_forcefield(args.ff[1])
+    ff_path = viparr.find_forcefield(args.ff[0][1])
+    print("Reading forcefield from", ff_path)
     ff = viparr.ImportForcefield(ff_path)
 
     # read patches
@@ -51,9 +54,11 @@ def main():
             print("Appending '%s'" % f[1])
             viparr.MergeForcefields(ff, patch, append_only=True)
         else:
-            assert False
+            raise RuntimeError("Unexpected option '%s'" % f[0])
 
     print("Writing '%s'" % args.outdir)
+    if os.path.exists(args.outdir):
+        shutil.rmtree(args.outdir)
     viparr.ExportForcefield(ff, args.outdir)
 
 if __name__ == '__main__':
