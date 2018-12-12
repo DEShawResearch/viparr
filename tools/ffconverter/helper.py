@@ -175,7 +175,7 @@ def addTemplateData(typer, newTemplate, symQ):
         atomic_charges=np.array([a.charge for a in res.atoms])
         ndigit=[]
         for q in atomic_charges:
-            for i in xrange(10):
+            for i in range(10):
                if(round(q,i)==q):
                    ndigit.append(i)
                    break
