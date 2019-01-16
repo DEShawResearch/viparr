@@ -25,6 +25,11 @@ def construct_lcn(param, n, pos):
     return place_lcn(c, pos)
 
 
+def normalized(x):
+    """Return normalized copy of vector x
+    """
+    return np.array(x) / np.linalg.norm(x)
+
 def place_ahnr(*r):
     """ construct geometry from ahNR params """
     from scipy.optimize import leastsq
@@ -67,6 +72,16 @@ def place_out3(c, pos):
     b = pos[2] - pos[0]
     c1, c2, c3 = c
     return pos[0] + c1*a + c2*b + c3*np.cross(a,b)
+
+def place_out3n(c, pos):
+    N = 3
+    assert len(pos)==N, "Expected %d positions; got %d" % (len(pos), N)
+    assert len(c)==N, "Expected %d coefficients; got %d" % (len(c), N)
+    a = pos[1] - pos[0]
+    b = pos[2] - pos[0]
+    q = np.cross(a, b)
+    c1, c2, c3 = c
+    return pos[0] + c1*normalized(a) + c2*normalized(b) + c3*normalized(q)
 
 def add_rigid_explicit(N, mol):
     assert N >= 2, "N must be at least 2"
@@ -118,6 +133,9 @@ def merge_vsites_with_rigid_constraints(mol):
                     elif vtable.name == 'virtual_out3':
                         c = [param['c%d' % i] for i in range(1, len(term.atoms)+1)]
                         vpos = place_out3(c, pos)
+                    elif vtable.name == 'virtual_out3n':
+                        c = [param['c%d' % i] for i in range(1, len(term.atoms)+1)]
+                        vpos = place_out3n(c, pos)
                     else:
                         raise RuntimeError("Unsupported vsite table '%s'" % vtable.name)
                     vsites[vatoms[0].id] = vpos
