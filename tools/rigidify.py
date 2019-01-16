@@ -5,7 +5,10 @@ import re
 def construct_ahnr_geometry(param, N):
     n = N*(N+1)//2
     r = [param['r%d' % i] for i in range(1, n+1)]
-    return place_ahnr(*r)
+    if len(r) > 3:
+        return new_place_ahnr(*r)
+    else:
+        return place_ahnr(*r)
 
 def construct_h2o_geometry(param):
     theta = param['theta'] * np.pi / 180
@@ -31,7 +34,7 @@ def normalized(x):
     return np.array(x) / np.linalg.norm(x)
 
 def place_ahnr(*r):
-    """ construct geometry from ahNR params """
+    """ construct geometry from ahNR params using linear least squares"""
     from scipy.optimize import leastsq
     from scipy.spatial.distance import pdist
 
@@ -52,6 +55,23 @@ def place_ahnr(*r):
     x0 = np.zeros(len(r))
     x = leastsq(f, x0, r)[0]
     return pos_from(x)
+
+def new_place_ahnr(*r):
+    """ construct geometry from ahNR params using multivariate optimization"""
+    from scipy.optimize import minimize
+    from scipy.spatial.distance import pdist
+
+    def f(x, *r):
+        """ penalty function """
+        y = pdist(x.reshape(-1, 3)) - r
+        return np.dot(y, y)
+
+    R = len(r)
+    N = int((1+8*R)**0.5 + 1)//2
+    x0 = np.zeros(3*N)
+    opt = minimize(f, x0, r)
+    assert opt.success
+    return opt.x.reshape((-1,3))
 
 def place_lcn(c, pos):
     ''' lifted from zero/mechanics/virtuals/virtual_lc.hxx '''
