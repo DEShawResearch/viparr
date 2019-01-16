@@ -1,4 +1,5 @@
 Release Notes:
+    4.7.5   - viparr-rigidify fixes for large constraint groups.
     4.7.4   - Small python3 fix.
             - Fix viparr-merge-forcefields.
     4.7.3   - Make ligand matching more robust by ignoring hydrogen layer.
