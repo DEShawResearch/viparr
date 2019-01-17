@@ -49,6 +49,13 @@ prepend-path DESRES_MODULE_LDFLAGS -Wl,-rpath,$PREFIX/lib
 EOF
 }
 
+runtests() {
+    loadmodules
+    PYTHONPATH=${PREFIX:-build}/lib/python:$PYTHONPATH python2 test/python_tests.py "$@"
+    PYTHONPATH=${PREFIX:-build}/lib/python:$PYTHONPATH python3 test/python_tests.py "$@"
+    ./test/run.sh -v
+}
+
 genhelp() {
     cat doc/source/release_notes.txt
 }
@@ -70,14 +77,11 @@ case $1 in
         nprocs=`nproc`
         $0 --exec scons -j$nprocs install PREFIX=${PREFIX} OBJDIR=$TMPDIR
 
-        PYTHONPATH=$PREFIX/lib/python:$PYTHONPATH python2 test/python_tests.py
-        PYTHONPATH=$PREFIX/lib/python:$PYTHONPATH python3 test/python_tests.py
-        ./test/run.sh -v
+        runtests
         $PREFIX/bin/viparr -h > /dev/null
         $PREFIX/bin/viparr_neutralize -h > /dev/null
         $PREFIX/bin/viparr_solvate -h > /dev/null
         $PREFIX/bin/viparr-make-rigid -h > /dev/null
-
         (cd doc && PYTHONPATH=$PREFIX/lib/python:$PYTHONPATH make clean html)
 
         mkdir -p $PREFIX/doc
