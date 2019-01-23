@@ -69,8 +69,8 @@ def new_place_ahnr(*r):
     R = len(r)
     N = int((1+8*R)**0.5 + 1)//2
     x0 = np.zeros(3*N)
-    opt = minimize(f, x0, r)
-    assert opt.success
+    opt = minimize(f, x0, r, method='Powell')
+    assert opt.success, opt
     return opt.x.reshape((-1,3))
 
 def place_lcn(c, pos):
