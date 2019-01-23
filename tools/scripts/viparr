@@ -1,6 +1,7 @@
 #!/usr/bin/garden-exec
 #{
 # source `dirname $0`/../share/env.sh
+# export PATH=$(garden scriptdir):$PATH
 # exec python $0 "$@"
 #}
 
