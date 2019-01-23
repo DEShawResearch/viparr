@@ -1,4 +1,7 @@
 Release Notes:
+    4.7.7   - Fix for rigidify.
+              Support relative paths for viparr -d.
+              Make viparr --make-rigid work.
     4.7.6   - msys/1.7.246.
     4.7.5   - viparr-rigidify fixes for large constraint groups.
     4.7.4   - Small python3 fix.
