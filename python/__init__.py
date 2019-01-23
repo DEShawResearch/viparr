@@ -42,8 +42,8 @@ def list_forcefields(ffpath):
 def find_forcefield(name):
     """Return the full path to the forcefield with the given name, or raise a RuntimeError.
     """
-    if os.path.isabs(name):
-        return name
+    if os.path.isdir(name):
+        return os.path.abspath(name)
     ffpath = get_ffpath()
     if not ffpath:
         raise RuntimeError("Could not find forcefield '%s' because VIPARR_FFPATH is unset; did you load a viparr-ff/data module?" % name)
