@@ -54,10 +54,7 @@ def Solvate(mol, watbox=None, dims=None, center=None,
     ct=mol.addCt()
     ct.name='solvate'
     if watbox is None:
-        if 'tip3p' in ffname:
-            wat=msys.Load(TIP3PWAT, structure_only=True)
-        else:
-            wat=msys.Load(WAT, structure_only=True)
+        wat=msys.Load(TIP3PWAT, structure_only=True)
     elif ffdir != '' or ffname != '':
         wat=msys.Load(watbox, structure_only=True)
     else:
