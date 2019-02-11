@@ -2,13 +2,17 @@ Import('env')
 Import('libviparr')
 
 env=env.Clone()
+opts=Variables()
+opts.Add("MSYS_BOOST_PYTHON_SUFFIX", "suffix for boost libraries (e.g. -py)")
+opts.Update(env)
+
 env.Append( 
         CPPPATH=['../src'],
         LIBS=['viparr'],
-        PYTHON27_LIBS=['boost_python27'],
-        PYTHON35_LIBS=['boost_python35'],
-        PYTHON36_LIBS=['boost_python36'],
-        PYTHON37_LIBS=['boost_python37'],
+        PYTHON27_LIBS=['boost_python${MSYS_BOOST_PYTHON_SUFFIX}27'],
+        PYTHON35_LIBS=['boost_python${MSYS_BOOST_PYTHON_SUFFIX}35'],
+        PYTHON36_LIBS=['boost_python${MSYS_BOOST_PYTHON_SUFFIX}36'],
+        PYTHON37_LIBS=['boost_python${MSYS_BOOST_PYTHON_SUFFIX}37'],
         )
 
 pymodfiles='''
