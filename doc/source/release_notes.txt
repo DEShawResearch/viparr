@@ -1,4 +1,5 @@
 Release Notes:
+    4.7.9   - Make rigidify skip over non-rigid tables (DESRESCode#4133)
     4.7.8   - Use the tip3p geometry water box unconditionally.
     4.7.7   - Fix for rigidify.
               Support relative paths for viparr -d.
