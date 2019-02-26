@@ -131,7 +131,8 @@ def merge_vsites_with_rigid_constraints(mol):
         elif table.name.startswith('rigid_explicit'):
             continue
         elif table.category == 'constraint':
-            raise RuntimeError("Unsupported constraint table '%s'" % table.name)
+            print("Warning, skipping non-rigid constraint table '%s'" % table.name)
+            continue
         else:
             continue
         print("Processing %d terms from %s" % (table.nterms, table.name))
