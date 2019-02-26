@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 import msys
 import numpy as np
 import re
