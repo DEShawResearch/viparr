@@ -139,25 +139,26 @@ def merge_vsites_with_rigid_constraints(mol):
             continue
         print("Processing %d terms from %s" % (table.nterms, table.name))
         for term in table.terms:
+            term_atoms = term.atoms
             geometry = gmap[term.param.id]
             vsites = dict()
             for vtable in vtables:
                 lcn = lcn_pattern.match(vtable.name)
-                for vterm in vtable.findWithAny(term.atoms):
+                for vterm in vtable.findWithAny(term_atoms):
                     vatoms = vterm.atoms
                     # vsite must be completely defined by atoms in the constraint group
-                    if not set(vatoms[1:]).issubset(term.atoms):
+                    if not set(vatoms[1:]).issubset(term_atoms):
                         continue
-                    pos = [geometry[term.atoms.index(a)] for a in vatoms[1:]]
+                    pos = [geometry[term_atoms.index(a)] for a in vatoms[1:]]
                     param = vterm.param
                     if lcn:
                         N = int(lcn.group(1))
                         vpos = construct_lcn(param, N, pos)
                     elif vtable.name == 'virtual_out3':
-                        c = [param['c%d' % i] for i in range(1, len(term.atoms)+1)]
+                        c = [param['c%d' % i] for i in range(1, len(term_atoms)+1)]
                         vpos = place_out3(c, pos)
                     elif vtable.name == 'virtual_out3n':
-                        c = [param['c%d' % i] for i in range(1, len(term.atoms)+1)]
+                        c = [param['c%d' % i] for i in range(1, len(term_atoms)+1)]
                         vpos = place_out3n(c, pos)
                     else:
                         raise RuntimeError("Unsupported vsite table '%s'" % vtable.name)
@@ -167,7 +168,7 @@ def merge_vsites_with_rigid_constraints(mol):
             N = len(geometry) + len(vsites)
             etable = add_rigid_explicit(N, mol)
             param = etable.params.addParam()
-            atoms = term.atoms
+            atoms = term_atoms
             for i, (x,y,z) in enumerate(geometry):
                 param['x%d' % i] = x
                 param['y%d' % i] = y
