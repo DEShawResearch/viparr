@@ -961,7 +961,6 @@ class TestMain(unittest.TestCase):
         self.assertTrue(len(src.cmap_tables) == 1)
 
     def testNBFix(self):
-        import msys.vdw
         Forcefield.ClearParamTables()
         lipids = ImportForcefield('test/ff3/charmm36_lipids')
         ions = ImportForcefield('test/ff3/charmm36_ions_nbfix')
@@ -974,25 +973,24 @@ class TestMain(unittest.TestCase):
         ExecuteViparr(sys, [lipids, ions, tip4p], verbose=False)
         self.assertTrue('nonbonded' in sys.table_names)
         noverrides = len(sys.select('atomicnumber 11')) * len(sys.select('atomicnumber 17 or ((name O13A or name O13B) and resname POPS)'))
-        self.assertTrue(msys.vdw.count_overrides(sys.table('nonbonded')) == noverrides)
+        self.assertEqual(sys.table('nonbonded').count_overrides(), noverrides)
         sys = msys.LoadDMS('test/dms/POPS_ions.dms', structure_only=True)
         ExecuteViparr(sys, [lipids, ions, tip4p], verbose=False, compile_plugins=False)
         
         # The following test was removed: execute_viparr now calls ApplyNBFix by default
-        #self.assertTrue(msys.vdw.count_overrides(sys.table('nonbonded')) == 0)
         CompilePlugins.ApplyNBFix(sys)
-        self.assertTrue(msys.vdw.count_overrides(sys.table('nonbonded')) == noverrides)
+        self.assertEqual(sys.table('nonbonded').count_overrides(), noverrides)
         # It's OK if multiple identical override rows match---just take one of them
         Forcefield.ParamTable('vdw2').params[-3].duplicate()
         sys = msys.LoadDMS('test/dms/POPS_ions.dms', structure_only=True)
         ExecuteViparr(sys, [lipids, ions, tip4p], verbose=False)
-        self.assertTrue(msys.vdw.count_overrides(sys.table('nonbonded')) == noverrides)
+        self.assertEqual(sys.table('nonbonded').count_overrides(), noverrides)
         # If nbfix identifier of vdw1 row does not match the identifier of vdw2 row, override should not be included
         for p in Forcefield.ParamTable('vdw1').params:
             p['nbfix_identifier'] = ''
         sys = msys.LoadDMS('test/dms/POPS_ions.dms', structure_only=True)
         ExecuteViparr(sys, [lipids, ions, tip4p], verbose=False)
-        self.assertTrue(msys.vdw.count_overrides(sys.table('nonbonded')) == 0)
+        self.assertEqual(sys.table('nonbonded').count_overrides(), 0)
         # It's an error if multiple override rows have same type but different params
         new_p = Forcefield.ParamTable('vdw2').params[-1].duplicate()
         Forcefield.ParamTable('vdw2').params[-1]['sigma'] = 0

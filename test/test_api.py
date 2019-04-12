@@ -68,7 +68,7 @@ def test_apply_ff_match(E, Z):
     def reorder(q0, q1, order):
         return list( np.array(q0 + q1)[order] )
 
-    shuffle_order = range(0, mol.natoms, 2) + range(1, mol.natoms, 2)
+    shuffle_order = list(range(0, mol.natoms, 2)) + list(range(1, mol.natoms, 2))
     shuffled = mol.clone(shuffle_order)
     # new indexing for how the original E/Z charges will be ordered after ApplyLigandForcefields
     f0, f1 = shuffled.updateFragids()

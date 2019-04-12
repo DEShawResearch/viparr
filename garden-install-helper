@@ -7,9 +7,8 @@ DESCRIPTION="Builds forcefields"
 
 SCONS=scons/2.5.1-03c7
 GCC=gcc/6.3.0-01c7
-PYTHON=desres-python/2.7.15-08c7
-PYTHON3=desres-python/3.7.2-07c7
-SCONSUTILS=sconsutils/1.48c7
+PYTHON=desres-python/3.7.2-08c7
+SCONSUTILS=sconsutils/1.49c7
 
 loadmodules() {
     garden load `cat $(dirname $0)/modules.txt`
@@ -17,21 +16,15 @@ loadmodules() {
     garden load \
         $SCONS/bin \
         $MSYS/lib \
-        $PYTHON3/bin \
         $PYTHON/bin \
         $GCC/bin \
-        $MSYS/lib-python \
+        $MSYS/lib-python37 \
         $SCONSUTILS/lib-python \
 
-   export PYTHONVER=27,37
+   export PYTHONVER=37
 }
 
 genmodules() {
-    # Python modules
-    cat << EOF > $GARDENDIR/lib-python
-prepend-path PYTHONPATH ${PREFIX}/lib/python
-EOF
-
     cat << EOF > $GARDENDIR/lib-python37
 prepend-path PYTHONPATH ${PREFIX}/lib/python
 EOF
@@ -51,7 +44,6 @@ EOF
 
 runtests() {
     loadmodules
-    PYTHONPATH=${PREFIX:-build}/lib/python:$PYTHONPATH python2 test/python_tests.py "$@"
     PYTHONPATH=${PREFIX:-build}/lib/python:$PYTHONPATH python3 test/python_tests.py "$@"
     ./test/run.sh -v
 }
