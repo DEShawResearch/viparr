@@ -4,6 +4,7 @@
 #include "ff.hxx"
 #include "parameter_matcher.hxx"
 #include "pattern.hxx"
+#include "plugins/pairs_helper.hxx"
 #include "importexport/import_ff.hxx"
 #include "importexport/export_ff.hxx"
 #include <msys/atomsel.hxx>
@@ -574,7 +575,7 @@ void add_parameters(TemplatedSystemPtr tsys, const IdList& atoms,
         if (info.ff_file == "ureybradley_harm"
                 && sys->findBond(term_atoms[0], term_atoms[1]) != msys::BadId)
             continue;
-        if (info.ff_file == "stretch_harm" && 
+        if (info.ff_file == "stretch_harm" &&
                 sys->findBond(term_atoms[0], term_atoms[1]) == msys::BadId)
             continue;
         if (info.ff_file == "ureybradley_harm") {
@@ -830,10 +831,14 @@ void add_vdw2_parameters(TemplatedSystemPtr tsys, const IdList& atoms,
     }
 }
 
-void generate_scaled_pairs(TemplatedSystemPtr tsys, const IdList& atoms,
+
+void generate_scaled_pairs_if_necessary(TemplatedSystemPtr tsys, const IdList& atoms,
         ForcefieldPtr ff) {
     const Rules::VDWFunc& func = Rules::VDWFuncRegistry().find(
             ff->rules()->vdw_func)->second;
+    const Rules::VDWCombRulePtr& vdw_rule = Rules::VDWCombRuleRegistry().find(
+            ff->rules()->vdw_comb_rule)->second;
+
     std::vector<std::string> tables = tsys->system()->tableNames();
     for (unsigned i = 0; i < tables.size(); ++i) {
         if (tables[i].substr(0,4) == "pair"
@@ -842,10 +847,20 @@ void generate_scaled_pairs(TemplatedSystemPtr tsys, const IdList& atoms,
                     + "' which does not agree with VDW functional form '"
                     + ff->rules()->vdw_func + "'");
     }
+
     msys::TermTablePtr pair_table = tsys->system()->table(func.pair_table_name);
     if (pair_table == msys::TermTablePtr()) return;
     IdList terms = pair_table->findWithAny(atoms);
     if (terms.size() == 0) return;
+
+    msys::SystemPtr sys = tsys->system();
+    msys::TermTablePtr vdw_term_table = sys->table("nonbonded");
+    if (vdw_term_table == msys::TermTablePtr())
+        vdw_term_table = sys->table("vdw1");
+    if (vdw_term_table == msys::TermTablePtr()) {
+        VIPARR_FAIL("nonbonded table not found");
+    }
+    const std::vector<std::string>& vdw_props = func.param_names;
 
     std::vector<std::string> pair_params = func.pair_param_names;
     pair_params.push_back("qij");
@@ -863,6 +878,7 @@ void generate_scaled_pairs(TemplatedSystemPtr tsys, const IdList& atoms,
         scaled_pair_overrides->addProp(pair_params[p], msys::FloatType);
     }
     Forcefield::AddParamTable("scaled_pair_overrides", scaled_pair_overrides);
+    bool added_scaled_pair_terms = false;
     for (unsigned i = 0; i < terms.size(); ++i) {
         IdList term_atoms = pair_table->atoms(terms[i]);
         unsigned sep = get_separation(tsys->system(), term_atoms);
@@ -923,16 +939,58 @@ void generate_scaled_pairs(TemplatedSystemPtr tsys, const IdList& atoms,
                 }
             }
         } else {
-            Id param = scaled_pair_overrides->addParam();
-            std::string type = tsys->nbtype(term_atoms[0]) + " "
-                + tsys->nbtype(term_atoms[1]);
-            scaled_pair_overrides->value(param, "type") = type;
-            scaled_pair_overrides->value(param, "separation") = sep;
-            for (unsigned p = 0; p < pair_params.size(); ++p)
-                scaled_pair_overrides->value(param, pair_params[p])
-                    = pair_table->propValue(terms[i], pair_params[p]);
-            ff->appendParam("scaled_pair_overrides", param);
+            msys::Id row0 = vdw_lookup(vdw_term_table, term_atoms[0], true);
+            msys::Id row1 = vdw_lookup(vdw_term_table, term_atoms[1], true);
+            if (row0 == msys::BadId || row1 == msys::BadId)
+                VIPARR_FAIL("couldnt find row in nonbonded table atom(s)");
+            std::vector<double> vi(vdw_props.size());
+            std::vector<double> vj(vdw_props.size());
+            for (unsigned p = 0; p < vdw_props.size(); ++p){
+                vi[p] = vdw_term_table->propValue(row0, vdw_props[p]).asFloat();
+                vj[p] = vdw_term_table->propValue(row1, vdw_props[p]).asFloat();
+            }
+            std::vector<double> pcomb = (*vdw_rule)(vi, vj, ff->rules()->lj_scale(sep));
+            if (pcomb.size() != func.pair_param_names.size())
+                VIPARR_FAIL("not enough combined parameters returned");
+            double qij = ff->rules()->es_scale(sep) * tsys->system()->atom(term_atoms[0]).charge
+            * tsys->system()->atom(term_atoms[1]).charge;
+            pcomb.push_back(qij);
+            bool equivalent = true;
+            for (unsigned p = 0; p < pair_params.size(); ++p){
+                double pval = pair_table->propValue(terms[i], pair_params[p]).asFloat();
+                double magdelta = fabs( pcomb[p] - pval);
+                double magref = (1e-8 + 1e-05 * fabs(pval));
+                bool isclose = magdelta <= magref;
+                if( not isclose) {
+                    VIPARR_OUT << "Atoms " << term_atoms[0] << " and " << term_atoms[1]
+                        << " at separation " << sep << " have param '"
+                        << pair_params[p] << "' value "
+                        << pval << " and simple value "
+                        << pcomb[p] << " magdelta is " << magdelta
+                        << " tolcheck is " << isclose << std::endl;
+                    equivalent = false;
+                    break;
+                }
+            }
+            if(not equivalent){
+                Id param = scaled_pair_overrides->addParam();
+                std::string type = tsys->nbtype(term_atoms[0]) + " "
+                            + tsys->nbtype(term_atoms[1]);
+                scaled_pair_overrides->value(param, "type") = type;
+                scaled_pair_overrides->value(param, "separation") = sep;
+                for (unsigned p = 0; p < pair_params.size(); ++p)
+                    scaled_pair_overrides->value(param, pair_params[p])
+                           = pair_table->propValue(terms[i], pair_params[p]);
+                ff->appendParam("scaled_pair_overrides", param);
+                added_scaled_pair_terms = true;
+            }
         }
+    }
+    if ( not added_scaled_pair_terms){
+        VIPARR_OUT << "  Forcefield table 'scaled_pair_overrides' was unnecessary... Removing"
+        << std::endl;
+
+        ff->rules()->plugins.pop_back();
     }
 }
 
@@ -1211,13 +1269,9 @@ ForcefieldPtr desres::viparr::ExecuteIviparr(msys::SystemPtr sys, const msys::Id
     for (unsigned i = 0; i < cmap_tables.size(); ++i)
         ff->addCmapTable(cmap_tables[i]);
 
-    /* Set ES and LJ scale factors to 0, and generate
-     * scaled_pair_overrides table from pairs table. This is to
-     * preserve a user's hand-modifications of pair terms in their
-     * input DMS. */
-    int exclusions = ff->rules()->exclusions();
-    ff->rules()->setExclusions(exclusions, std::vector<double>(exclusions-1, 0),
-            std::vector<double>(exclusions-1, 0));
-    generate_scaled_pairs(tsys, atoms, ff);
+    /* Generate scaled_pair_overrides table from pairs table if they
+     * dont conform to the forcefields ES and LJ scale factors. This is to
+     * preserve a user's hand-modifications of pair terms in their input DMS. */
+    generate_scaled_pairs_if_necessary(tsys, atoms, ff);
     return ff;
 }
