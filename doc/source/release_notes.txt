@@ -1,5 +1,5 @@
 Release Notes:
-    4.7.10  - Drop python2 support.
+    4.7.11  - Drop python2 support.
             - Add --include-rigid option to viparr-rigidify.
             - Include yas so we can load by jobid.
             - Don't generate scaled_pair_overrides for simple cases
