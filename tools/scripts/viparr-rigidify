@@ -18,6 +18,8 @@ def parser():
     parser = ArgumentParser(description=__doc__)
     parser.add_argument('ifile', help='input file')
     parser.add_argument('ofile', help='output file')
+    parser.add_argument("--include-rigid", action="store_true",
+            help="Extend existing rigid_explicit constraints")
     return parser
 
 
@@ -26,7 +28,7 @@ def main():
     print("Loading", args.ifile)
     mol = msys.Load(args.ifile)
     print("Merging")
-    new = merge(mol)
+    new = merge(mol, include_rigid=args.include_rigid)
     print("Saving", args.ofile)
     msys.Save(new, args.ofile)
 

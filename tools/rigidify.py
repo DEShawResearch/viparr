@@ -25,6 +25,11 @@ def construct_h2o_geometry(param):
 
     return np.array(geometry)
 
+def construct_rigid_geometry(param):
+    pos = [param[k] for k in sorted(param.keys())]
+    pos = np.array(pos).reshape(3,-1).T
+    return pos
+
 def construct_lcn(param, n, pos):
     c = [param['c%d' % i] for i in range(1, n)]
     return place_lcn(c, pos)
@@ -116,7 +121,7 @@ def add_rigid_explicit(N, mol):
         params.addProp('z%d' % i, float)
     return table
 
-def merge_vsites_with_rigid_constraints(mol):
+def merge_vsites_with_rigid_constraints(mol, include_rigid=False):
     mol = mol.clone()
     vtables = [table for table in mol.tables if table.category == 'virtual']
     reich_pattern = re.compile(r'constraint_ah([1-9])R')
@@ -131,7 +136,11 @@ def merge_vsites_with_rigid_constraints(mol):
             N = int(reich.group(1))
             gmap = { p.id : construct_ahnr_geometry(p, N) for p in table.params.params }
         elif table.name.startswith('rigid_explicit'):
-            continue
+            if include_rigid:
+                gmap = { p.id : construct_rigid_geometry(p) for p in table.params.params }
+            else:
+                print("Skipping", table.name)
+                continue
         elif table.category == 'constraint':
             print("Warning, skipping non-rigid constraint table '%s'" % table.name)
             continue
