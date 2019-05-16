@@ -1,4 +1,9 @@
 Release Notes:
+    4.7.10  - Drop python2 support.
+            - Add --include-rigid option to viparr-rigidify.
+            - Include yas so we can load by jobid.
+            - Don't generate scaled_pair_overrides for simple cases
+
     4.7.9   - Make rigidify skip over non-rigid tables (DESRESCode#4133)
     4.7.8   - Use the tip3p geometry water box unconditionally.
     4.7.7   - Fix for rigidify.
