@@ -20,7 +20,7 @@ class simpleFF(object):
         for tfile in glob.glob(os.path.join(ffdir, 'templates*')):
             self.templates.extend(viparr.ImportTemplates(tfile))
         if(len(self.templates)==0):
-            print "Did not find any templates in directory: "+ffdir
+            print("Did not find any templates in directory: "+ffdir)
 
 class FFDirAction(argparse.Action):
     def __call__(self, parser, namespace, value, option_string):
@@ -39,13 +39,13 @@ class FFDirAction(argparse.Action):
         else:
             dirlist=[startpath]
         for d in dirlist:
-            print 'Importing templates from %s' % d
+            print('Importing templates from %s' % d)
             namespace.ffdata.append(simpleFF(d))
 
 class FFNameAction(argparse.Action):
     def __call__(self, parser, namespace, value, option_string):
         src = viparr.find_forcefield(value)
-        print 'Importing templates from %s' % src
+        print('Importing templates from %s' % src)
         namespace.ffdata.append(simpleFF(src))
 
 
@@ -54,7 +54,7 @@ def check_templates_for_strucure(ffdata, mol, selection):
     assert(len(atoms))
     tsys=viparr.TemplatedSystem(mol)
 
-    print "\nBegining Search for selection %s"%(selection)
+    print("\nBegining Search for selection %s"%(selection))
     for data in ffdata:
         #print data.name
         typer=viparr.TemplateTyper()
@@ -63,7 +63,7 @@ def check_templates_for_strucure(ffdata, mol, selection):
             #print t.name,t.hash
         matches,err_msg=typer.matchFragment(tsys, atoms)
         if(len(matches)==0): continue
-        print "Template found in: %s as %s"%(data.name, str([t[0].name for t in matches]))
+        print("Template found in: %s as %s"%(data.name, str([t[0].name for t in matches])))
 
 
 def main():

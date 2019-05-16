@@ -16,14 +16,14 @@ def main(paths):
     else:
         outfile = paths[1]
 
-    print "Rigidifying:",infile
-    print "Output: ", outfile
+    print("Rigidifying:",infile)
+    print("Output: ", outfile)
     
     m = msys.LoadDMS(infile)
     
     #TODO: more robust (other angle tables?)
     tabname = 'angle_harm'
-    if tabname not in m.table_names: raise Exception, "Forcefield doesn't contain any angle terms"
+    if tabname not in m.table_names: raise Exception("Forcefield doesn't contain any angle terms")
     angles = m.table(tabname)
     
     #TODO: Make this nicer
@@ -97,17 +97,17 @@ def side(a,b,theta):
 def angle(angles,atoms):
     alist = angles.findWithOnly(sorted(atoms, key=lambda a:a.id))
     if len(alist) != 1: 
-        raise Exception, "Expected one angle involving atoms " + str([a.id for a in atoms]) + " but found " + str(len(alist))
+        raise Exception("Expected one angle involving atoms " + str([a.id for a in atoms]) + " but found " + str(len(alist)))
     alist[0]['constrained']=1 # Mark constrained
     return alist[0]['theta0']
 
 if __name__=="__main__":
     #TODO: optparse etc.
     def printhelp():
-        print >> sys.stderr, "Usage: %s in.dms [out.dms]" % sys.argv[0]
-        print >> sys.stderr, "Replaces constraint_ah1, _ah2, and _ah3 constraints with alternative\n" \
-        "constraint_ah1R, _ah2R, and _ah3R constraints."
-        print >> sys.stderr, "If out.dms is not specified, appends 'R' to the input filename"
+        print("Usage: %s in.dms [out.dms]" % sys.argv[0], file=sys.stderr)
+        print("Replaces constraint_ah1, _ah2, and _ah3 constraints with alternative\n" \
+        "constraint_ah1R, _ah2R, and _ah3R constraints.", file=sys.stderr)
+        print("If out.dms is not specified, appends 'R' to the input filename", file=sys.stderr)
     if len(sys.argv) == 2 and sys.argv[1] in ["-h", "--help"]:
         printhelp()
         exit(0)

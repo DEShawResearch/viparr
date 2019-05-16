@@ -56,7 +56,7 @@ def read_residue(ifile, residue_id):
     resid = int(residue_id)
     mol = msys.Load(ifile)
     res = mol.residue(resid)
-    print "using residue %d: %s%d:%s with %d atoms" % (resid, res.chain.name, res.resid, res.name, res.natoms)
+    print("using residue %d: %s%d:%s with %d atoms" % (resid, res.chain.name, res.resid, res.name, res.natoms))
     # keep track of which residue is the one we selected
     pname = '_draw_template_residue_target'
     mol.addAtomProp(pname, int)
