@@ -293,14 +293,18 @@ namespace desres { namespace viparr {
             processed.insert(a);
             IdList alist(1, a);
             IdList bonded = sys->bondedAtoms(a);
-            for (unsigned j = 0; j < bonded.size(); ++j)
+            unsigned n_real_bonded=0;
+            for (unsigned j = 0; j < bonded.size(); ++j){
                 if (sys->atom(bonded[j]).atomic_number == 1)
                     alist.push_back(bonded[j]);
+                if (sys->atom(bonded[j]).atomic_number > 0)
+                    n_real_bonded++;
+            }
             unsigned n = alist.size() - 1;
             if (n == 0) // No bonded H
                 continue;
 
-            if (sys->atom(a).atomic_number == 8 && n == 2) {
+            if (sys->atom(a).atomic_number == 8 && n == 2 && n_real_bonded == 2 ) {
                 /* HOH constraint */
                 if (exclude.find("hoh") == exclude.end()) {
                     /* Ensure constraints do not overlap */
