@@ -645,6 +645,37 @@ class TestMain(unittest.TestCase):
         ff.addCmapTable(cmap)
         self.assertTrue(ff.cmap_tables == [cmap])
 
+    def testBuildConstraintsAnharm(self):
+        Forcefield.ClearParamTables()
+        sys = msys.CreateSystem()
+        res = sys.addResidue()
+        a = res.addAtom()
+        h = res.addAtom()
+        a.atomic_number = 6
+        h.atomic_number = 1
+        a.addBond(h)
+        table = sys.addTable('stretch_anharm', 2)
+        table.category = 'bond'
+        for i in (1,2,3,4):
+            table.params.addProp('fc%d' % i, float)
+        table.params.addProp("r0", float)
+        param = table.params.addParam()
+        param['fc2'] = 10
+        param['fc3'] = -5
+        param['fc4'] = 20
+        param['r0'] = 1.08
+        table.addTerm(sys.atoms, param)
+        BuildConstraints(sys, verbose=False)
+        term = sys.table("stretch_harm").term(0)
+        assert term.atoms == sys.atoms
+        assert term['fc'] == 10
+        assert term['r0'] == 1.08
+        assert term['constrained']
+        term = sys.table("constraint_ah1").term(0)
+        assert term.atoms == sys.atoms
+        assert term['r1'] == 1.08
+
+
     def testBuildConstraints(self):
         Forcefield.ClearParamTables()
         sys = msys.CreateSystem()

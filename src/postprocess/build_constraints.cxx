@@ -6,20 +6,20 @@
 #include <sstream>
 #include <vector>
 #include <map>
+#include <msys/schema.hxx>
 
 using namespace desres;
 using namespace desres::viparr;
-using desres::msys::Id;
-using desres::msys::IdList;
+using namespace desres::msys;
 
 namespace {
 
-    /* Fast IdSet with known max ID */
-    struct IdSet {
+    /* Fast IdArr with known max ID */
+    struct IdArr {
         std::vector<bool> contains;
         unsigned size;
 
-        IdSet(unsigned n) {
+        IdArr(unsigned n) {
             contains = std::vector<bool>(n, false);
             size = 0;
         }
@@ -29,42 +29,68 @@ namespace {
             ++size;
             return true;
         }
-        bool insert(msys::IdList::const_iterator start,
-                msys::IdList::const_iterator end) {
+        bool insert(IdList::const_iterator start,
+                IdList::const_iterator end) {
             bool success = true;
-            for (msys::IdList::const_iterator iter = start; iter != end; ++iter)
+            for (IdList::const_iterator iter = start; iter != end; ++iter)
                 success &= insert(*iter);
             return success;
         }
     };
 
+    void convert_anharm_hydrogen(SystemPtr mol) {
+        auto anharm = mol->table("stretch_anharm");
+        if (!anharm) return;
+        auto harm = AddTable(mol, "stretch_harm");
+        for (auto& term : *anharm) {
+            if (mol->atomFAST(term.atom(0)).atomic_number == 1 ||
+                mol->atomFAST(term.atom(1)).atomic_number == 1) {
+                // if fc1==0, then the equilibrium location is just r0
+                if (anharm->params()->value(term.param(), "fc1") != 0) {
+                    VIPARR_FAIL("stretch_anharm term with atoms "
+                            << term.atom(0) << " " << term.atom(1)
+                            << " has nonzero fc1 component.  Cannot constrain.");
+                }
+                Id pid = harm->params()->addParam();
+                harm->params()->value(pid, "fc") = anharm->params()->value(term.param(), "fc2");
+                harm->params()->value(pid, "r0") = anharm->params()->value(term.param(), "r0");
+                IdList ids(2);
+                ids[0] = term.atom(0);
+                ids[1] = term.atom(1);
+                harm->addTerm(ids, pid);
+                anharm->delTerm(term.id());
+            }
+        }
+    }
+
+
     /* alist of the form (O, H1, H2) with H1's ID < H2's ID */
-    void build_hoh_constraint(msys::SystemPtr sys, const IdList& alist,
-            IdSet& constrained_bonds, IdSet& constrained_angles) {
+    void build_hoh_constraint(SystemPtr sys, const IdList& alist,
+            IdArr& constrained_bonds, IdArr& constrained_angles) {
 
         /* Add tables if they do not exist */
         if (!Forcefield::HasParamTable("constraint_hoh")) {
-            msys::ParamTablePtr params = msys::ParamTable::create();
-            params->addProp("theta", msys::FloatType);
-            params->addProp("r1", msys::FloatType);
-            params->addProp("r2", msys::FloatType);
+            ParamTablePtr params = ParamTable::create();
+            params->addProp("theta", FloatType);
+            params->addProp("r1", FloatType);
+            params->addProp("r2", FloatType);
             Forcefield::AddParamTable("constraint_hoh", params);
         }
-        msys::ParamTablePtr params = Forcefield::ParamTable("constraint_hoh");
-        msys::TermTablePtr constrained = sys->table("constraint_hoh");
-        if (constrained == msys::TermTablePtr()) {
+        ParamTablePtr params = Forcefield::ParamTable("constraint_hoh");
+        TermTablePtr constrained = sys->table("constraint_hoh");
+        if (constrained == TermTablePtr()) {
             constrained = sys->addTable("constraint_hoh", 3, params);
-            constrained->category = msys::CONSTRAINT;
+            constrained->category = CONSTRAINT;
         }
         if (constrained->params() != params)
             VIPARR_FAIL("VIPARR bug: constraint term table does not point to "
                     "global param table");
 
         /* Create tuple of angle harm and stretch harm params */
-        msys::TermTablePtr angle_harm = sys->table("angle_harm");
-        msys::TermTablePtr stretch_harm = sys->table("stretch_harm");
-        if (angle_harm == msys::TermTablePtr()
-                || stretch_harm == msys::TermTablePtr())
+        TermTablePtr angle_harm = sys->table("angle_harm");
+        TermTablePtr stretch_harm = sys->table("stretch_harm");
+        if (angle_harm == TermTablePtr()
+                || stretch_harm == TermTablePtr())
             VIPARR_FAIL("Must have stretch harm and angle harm tables before "
                     "adding hoh constraints");
         std::vector<double> param_values;
@@ -113,7 +139,7 @@ namespace {
 
         /* If param value exists, use existing param. Otherwise, add new
          * param */
-        Id param = msys::BadId;
+        Id param = BadId;
         IdList matches = params->findFloat(params->propIndex("theta"),
                 param_values[0]);
         for (unsigned i = 0; i < matches.size(); ++i) {
@@ -123,7 +149,7 @@ namespace {
                 break;
             }
         }
-        if (param == msys::BadId) {
+        if (param == BadId) {
             param = params->addParam();
             params->value(param, "theta") = param_values[0];
             params->value(param, "r1") = param_values[1];
@@ -133,8 +159,8 @@ namespace {
     }
 
     /* alist of the form (A, H1, H2, ..., Hn) */
-    void build_ahn_constraint(msys::SystemPtr sys, const IdList& alist,
-            IdSet& constrained_bonds) {
+    void build_ahn_constraint(SystemPtr sys, const IdList& alist,
+            IdArr& constrained_bonds) {
 
         unsigned n = alist.size() - 1;
         std::stringstream name;
@@ -142,26 +168,26 @@ namespace {
 
         /* Add tables if they do not exist */
         if (!Forcefield::HasParamTable(name.str())) {
-            msys::ParamTablePtr params = msys::ParamTable::create();
+            ParamTablePtr params = ParamTable::create();
             for (unsigned i = 1; i <= n; ++i) {
                 std::stringstream prop_name;
                 prop_name << "r" << i;
-                params->addProp(prop_name.str(), msys::FloatType);
+                params->addProp(prop_name.str(), FloatType);
             }
             Forcefield::AddParamTable(name.str(), params);
         }
-        msys::ParamTablePtr params = Forcefield::ParamTable(name.str());
-        msys::TermTablePtr constrained = sys->table(name.str());
-        if (constrained == msys::TermTablePtr()) {
+        ParamTablePtr params = Forcefield::ParamTable(name.str());
+        TermTablePtr constrained = sys->table(name.str());
+        if (constrained == TermTablePtr()) {
             constrained = sys->addTable(name.str(), n+1, params);
-            constrained->category = msys::CONSTRAINT;
+            constrained->category = CONSTRAINT;
         }
         if (constrained->params() != params)
             VIPARR_FAIL("VIPARR bug: constraint term table does not point to "
                     "global param table");
 
-        msys::TermTablePtr stretch_harm = sys->table("stretch_harm");
-        if (stretch_harm == msys::TermTablePtr())
+        TermTablePtr stretch_harm = sys->table("stretch_harm");
+        if (stretch_harm == TermTablePtr())
             VIPARR_FAIL("Must have stretch harm table before adding ahn "
                     "constraints");
         std::vector<double> param_values;
@@ -190,7 +216,7 @@ namespace {
 
         /* If param value exists, use existing param. Otherwise, add new
          * param */
-        Id param = msys::BadId;
+        Id param = BadId;
         IdList matches = params->findFloat(params->propIndex("r1"),
                 param_values[0]);
         for (unsigned i = 0; i < matches.size(); ++i) {
@@ -209,7 +235,7 @@ namespace {
                 break;
             }
         }
-        if (param == msys::BadId) {
+        if (param == BadId) {
             param = params->addParam();
             for (unsigned j = 1; j <= n; ++j) {
                 std::stringstream prop_name;
@@ -223,7 +249,7 @@ namespace {
  
 namespace desres { namespace viparr {
 
-    void BuildConstraints(msys::SystemPtr sys, const msys::IdList& atoms,
+    void BuildConstraints(SystemPtr sys, const IdList& atoms,
             bool keep, const std::set<std::string>& exclude, 
             bool optimize_vsite_defs, bool verbose) {
 
@@ -232,21 +258,24 @@ namespace desres { namespace viparr {
         /* Remove terms with selected atoms from all constraint tables */
         std::vector<std::string> tables = sys->tableNames();
         for (unsigned i = 0; i < tables.size(); ++i) {
-            msys::TermTablePtr table = sys->table(tables[i]);
-            if (table->category == msys::CONSTRAINT) {
-                msys::IdList terms = table->findWithAny(atoms);
+            TermTablePtr table = sys->table(tables[i]);
+            if (table->category == CONSTRAINT) {
+                IdList terms = table->findWithAny(atoms);
                 for (unsigned j = 0; j < terms.size(); ++j)
                     table->delTerm(terms[j]);
             }
         }
 
+        /* convert stretch_anharm terms involving hydrogen to stretch_harm. */
+        convert_anharm_hydrogen(sys);
+
         /* Create set of existing constrained atoms, to ensure constraints do
          * not overlap */
-        IdSet constrained_atoms(sys->maxAtomId());
+        IdArr constrained_atoms(sys->maxAtomId());
         tables = sys->tableNames();
         for (unsigned i = 0; i < tables.size(); ++i) {
-            msys::TermTablePtr table = sys->table(tables[i]);
-            if (table->category != msys::CONSTRAINT)
+            TermTablePtr table = sys->table(tables[i]);
+            if (table->category != CONSTRAINT)
                 continue;
             IdList terms = table->terms();
             for (unsigned j = 0; j < terms.size(); ++j) {
@@ -259,26 +288,26 @@ namespace desres { namespace viparr {
         
         /* We store constrained bonds and angles and update their
          * "constrained" values later */
-        IdSet constrained_bonds(sys->table("stretch_harm")
-                == msys::TermTablePtr() ? 0
+        IdArr constrained_bonds(sys->table("stretch_harm")
+                == TermTablePtr() ? 0
                 : sys->table("stretch_harm")->maxTermId());
-        IdSet constrained_angles(sys->table("angle_harm")
-                == msys::TermTablePtr() ? 0
+        IdArr constrained_angles(sys->table("angle_harm")
+                == TermTablePtr() ? 0
                 : sys->table("angle_harm")->maxTermId());
 
         /* Store boolean array of input atom IDs, to reset constrained values
          * of stretch and angle terms for these atoms later. This seems to be
-         * much faster than using msys::TermTable::findWithAny. */
-        IdSet atomsel(sys->maxAtomId());
+         * much faster than using TermTable::findWithAny. */
+        IdArr atomsel(sys->maxAtomId());
 
-        IdSet processed(sys->maxAtomId());
+        IdArr processed(sys->maxAtomId());
         for (unsigned i = 0; i < atoms.size(); ++i) {
             Id a = atoms[i];
             atomsel.insert(a);
             if (sys->atom(a).atomic_number == 0) continue;
             if (sys->atom(a).atomic_number == 1) {
                 /* Switch a with bonded heavy atom */
-                Id b = msys::BadId;
+                Id b = BadId;
                 IdList bonded = sys->bondedAtoms(a);
                 for (unsigned j = 0; j < bonded.size(); ++j) {
                     if (sys->atom(bonded[j]).atomic_number > 1) {
@@ -286,7 +315,7 @@ namespace desres { namespace viparr {
                         break;
                     }
                 }
-                if (b == msys::BadId) continue;
+                if (b == BadId) continue;
                 a = b;
             }
             if (processed.contains[a]) continue;
@@ -344,7 +373,7 @@ namespace desres { namespace viparr {
         /* Update "constrained" values for stretch_harm and angle_harm 
          * tables */
         if (constrained_bonds.size > 0) {
-            msys::TermTablePtr stretch_harm = sys->table("stretch_harm");
+            TermTablePtr stretch_harm = sys->table("stretch_harm");
             IdList terms = stretch_harm->terms();
             for (unsigned i = 0; i < terms.size(); ++i) {
                 if (atomsel.contains[stretch_harm->atoms(terms[i])[0]]
@@ -356,7 +385,7 @@ namespace desres { namespace viparr {
             }
         }
         if (constrained_angles.size > 0) {
-            msys::TermTablePtr angle_harm = sys->table("angle_harm");
+            TermTablePtr angle_harm = sys->table("angle_harm");
             IdList terms = angle_harm->terms();
             for (unsigned i = 0; i < terms.size(); ++i) {
                 if (atomsel.contains[angle_harm->atoms(terms[i])[0]]
