@@ -1,4 +1,7 @@
 Release Notes:
+    4.7.12  - Add support for constraints on stretch_anharm terms
+            - Use a more robust definition of 'hoh' for constraint_hoh terms
+
     4.7.11  - Drop python2 support.
             - Add --include-rigid option to viparr-rigidify.
             - Include yas so we can load by jobid.
