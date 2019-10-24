@@ -1,6 +1,6 @@
-#!/usr/bin/env desres-exec
+#!/usr/bin/garden-exec
 #{
-# exec desres-cleanenv \
+# exec garden with -c \
 #    -- sh $0 "$@"
 #}
 
