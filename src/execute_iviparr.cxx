@@ -97,7 +97,7 @@ TemplatedSystemPtr create_template(TemplatedSystemPtr tsys, const IdList& atoms,
     for (unsigned j = 0; j < atoms.size(); ++j) {
         sys_to_tpl[atoms[j]] = j;
         std::stringstream type;
-        type << msys::AbbreviationForElement(
+        type << "iv_" << msys::AbbreviationForElement(
                 sys->atom(atoms[j]).atomic_number) << atoms[j];
         tpl_sys->atom(j).name = type.str();
         if (sys->atom(atoms[j]).atomic_number != 0) {
