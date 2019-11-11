@@ -276,6 +276,164 @@ def parse_6_12(file,FFconv,modify):
 
     return
 
+def parse_cmap(file, FFconv, modify):
+    allcmaps = []
+    cmap = {}
+    mode = ""
+    nmode = None
+
+    for l in file:
+        lclean=l.strip()
+        if(len(lclean)==0): break
+        words = lclean.split()
+        if words[0] == "%FLAG":
+            if mode not in ["", "CMAP_TITLE"]:
+                assert len(cmap[mode]) == nmode
+            elif mode == "CMAP_TITLE":
+                cmap[mode] = " ".join(cmap[mode])
+
+            mode = ""
+            nmode = None
+            key = words[1]
+
+            if key == "CMAP_TITLE":
+                if len(cmap):
+                    allcmaps.append(cmap)
+                    cmap = {}
+            assert key not in cmap
+            # Its unclear from seeing two different files done differently if this is the
+            # index of the CMAP table or how many cmap tables to expect... funtimes
+            if key == "CMAP_COUNT":
+                pass
+            elif key == "CMAP_TITLE":
+                mode = key
+                nmode = None
+                cmap[mode] = []
+            elif key == "CMAP_RESLIST":
+                mode = key
+                nmode = int(words[2])
+                cmap[mode] = []
+            elif key == "CMAP_RESOLUTION":
+                cmap[key] = int(words[2])
+            elif key == "CMAP_ATMLIST":
+                cmap[key] = words[2].split('-')
+            elif key == "CMAP_RESIDX":
+                cmap[key] = list(map(int, words[2:]))
+            elif words[1] == "CMAP_PARAMETER":
+                mode = "CMAP_PARAMETER"
+                nmode = cmap["CMAP_RESOLUTION"]**2
+                cmap[mode] = []
+            else:
+                raise RuntimeError(f"Unknown CMAP flag: '{key}'")
+        elif(words[0] == "%COMMENT"):
+            cmap["COMMENT"] = cmap.get("COMMENT", "") + " " + " ".join(words[2:])
+        elif mode in ["CMAP_RESLIST", "CMAP_PARAMETER", "CMAP_TITLE"]:
+            cmap[mode].extend(words)
+        else:
+            raise RuntimeError("Unhandled file structure")
+
+    if len(cmap):
+        allcmaps.append(cmap)
+
+    seen = set()
+    for cmap in allcmaps:
+        cmapTable = msys.CreateParamTable()
+        cmapTable.addProp('phi', float)
+        cmapTable.addProp('psi', float)
+        cmapTable.addProp('energy', float)
+        FFconv.viparrff.addCmapTable(cmapTable)
+
+        spacing = 360.0/cmap["CMAP_RESOLUTION"]
+        evals = list(map(float, cmap["CMAP_PARAMETER"]))
+        for iphi in range(cmap["CMAP_RESOLUTION"]):
+            for ipsi in range(cmap["CMAP_RESOLUTION"]):
+                param = cmapTable.addParam()
+                param["phi"] = -180.0 + iphi*spacing
+                param["psi"] = -180.0 + ipsi*spacing
+                param["energy"] = evals[cmap["CMAP_RESOLUTION"] * iphi + ipsi]
+
+    if len(FFconv.cmaps) and len(allcmaps):
+        raise RuntimeError("I cant overwrite cmap tables yet")
+    FFconv.cmaps = allcmaps
+
+# FIXME: This is hacked together to support the amber ff19SB forcefield
+# with our current viparr code.
+# I have no illusions that it will work for general cmap terms in amber
+# which would require modifications of viparr
+def apply_cmap_to_templates(FFconv):
+    # we are going to go through, and rename the bonded type used for the
+    # alpha carbon of each cmap term, and then duplicate the bonded parameters as
+    # necessary.
+    # Also make sure all residues use the same atomtype names
+    unique_types = set()
+    bbnames =  ["N", "CA", "C"]
+    typer = FFconv.viparrff.typer
+    rewrite = []
+    for icmap, cmap in enumerate(FFconv.cmaps):
+        assert "CMAP_RESIDX" not in cmap
+        assert "CMAP_ATMLIST" not in cmap
+        title = cmap["CMAP_TITLE"]
+
+        for resname in cmap["CMAP_RESLIST"]:
+            tmpls = typer.findTemplate(resname)
+            assert len(tmpls)
+            for tmpl in tmpls:
+                found = []
+                for aname in bbnames:
+                    for a in tmpl.system.atoms:
+                        if a.name == aname:
+                            found.append((a, tmpl.btype(a)))
+                            break
+                assert len(found) == len(bbnames)
+                unique_types.add(tuple([v[1] for v in found]))
+                assert len(unique_types)==1
+                ca, oldtype = found[1]
+                newtype = oldtype+"_%02d"%(icmap+1)
+                rewrite.append((oldtype, newtype))
+                tmpl.setTypes(ca, newtype, tmpl.nbtype(ca), tmpl.pset(ca))
+                found = [v[0] for v in found]
+                am1 = [a for a in found[0].bonded_atoms if a.atomic_number==-1]
+                ap1 = [a for a in found[-1].bonded_atoms if a.atomic_number==-1]
+                assert(len(am1)==1 and len(ap1)==1)
+                cmapatoms = am1 + found + found + ap1
+                tmpl.addCmap(cmapatoms)
+        atypes = list(list(unique_types)[0])
+        atypes[1] = rewrite[-1][1]
+        t1 = ["*"]+atypes
+        t2 = atypes+["*"]
+        params = {
+                "type":" ".join(t1+t2),
+                "cmapid": icmap+1,
+                "memo": title
+                }
+        print(params)
+        ffconverter.addOrUpdateParameterData(FFconv.viparrff,"torsiontorsion_cmap",params,False, False, False)
+
+    rewrite = set(rewrite)
+    rewriteRef = set([v[0] for v in rewrite])
+    assert len(rewriteRef) == 1
+    rewriteRef = rewriteRef.pop()
+    rewrite = sorted([v[1] for v in rewrite])
+    assert len(set(rewrite)) == len(rewrite)
+    for tname in ['mass', 'stretch_harm', 'angle_harm', 'dihedral_trig', 'improper_trig']:
+        table = FFconv.viparrff.ParamTable(tname)
+        params = table.params
+        FFconv.viparrff.delParams(tname, params=params)
+        for p in params:
+            kwds = { k:p[k] for k in p.keys() }
+            FFconv.viparrff.appendParam(tname, **kwds)
+            atypes = kwds["type"].split(" ")
+            if rewriteRef in atypes:
+                kwds["memo"] += " VIPARR CMAP SUPPORT"
+                for rw in rewrite:
+                    kwds["type"] = " ".join([at if at != rewriteRef else rw for at in atypes])
+                    FFconv.viparrff.appendParam(tname, **kwds)
+
+        #print(params[0].items())
+
+
+
+
 
 
 # amber handles dihedral parameter overides differently than most forcefields.
@@ -449,7 +607,7 @@ def load_frcmod_or_param(filename, FFconv):
     print("done loading: ",filename)
 
 def _loadfrcmod(filename,FFconv):
-    file = open(filename,'r')
+    file = open(filename, 'r')
 
     # Section 1 Title
     l=next(file)
@@ -472,6 +630,8 @@ def _loadfrcmod(filename,FFconv):
             parse_10_12(file,True)
         elif words[0][0:4] == 'NONB':
             parse_6_12(file,FFconv,True)
+        elif words[0][0:4] == 'CMAP':
+            parse_cmap(file, FFconv, True)
     file.close()
 
 def _loadparam(filename,FFconv):
@@ -905,6 +1065,7 @@ def convertAmberForcefield(amberFF, skipres, onlyThese, cleanTemplates):
         return atypes
 
     cont.fix_atypes=fix_atypes
+    cont.cmaps = []
 
     cont.wildprop={"parm" : OrderedDict(), "frcmod" : OrderedDict()}
     cont.nonwildprop={"parm" : OrderedDict(), "frcmod" : OrderedDict()}
@@ -952,6 +1113,9 @@ def convertAmberForcefield(amberFF, skipres, onlyThese, cleanTemplates):
             loadOff(file, pref, ttype, cont)
         else:
             loadtempl(file, pref, ttype, cont)
+
+    apply_cmap_to_templates(cont)
+
 
     typer=cont.viparrff.typer
     # Remove water and useless Pseudo Ions
