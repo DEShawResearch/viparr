@@ -24,6 +24,7 @@ with this later later versions of viparr.
    viparr_normal
    tools
    python_api
+   viparr1to2
    release_notes.rst
 
 Indices and tables
