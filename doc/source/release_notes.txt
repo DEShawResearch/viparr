@@ -1,4 +1,9 @@
 Release Notes:
+    4.7.13  - Add support for constraints on stretch_anharm terms
+            - Update viparr-ffpublic docs
+            - Prototype support for CMAP in amber forcefield files
+            - Fix in iviparr (DESRESFF#424)
+
     4.7.12  - Add support for constraints on stretch_anharm terms
             - Use a more robust definition of 'hoh' for constraint_hoh terms
 
