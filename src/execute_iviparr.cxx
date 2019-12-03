@@ -14,6 +14,7 @@
 #include <msys/io.hxx>
 #include <msys/elements.hxx>
 #include <msys/override.hxx>
+#include <cmath>
 
 using namespace desres;
 using desres::msys::Id;

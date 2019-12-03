@@ -2,11 +2,13 @@ import os, hashlib
 Import('env')
 
 def build_version_hxx(target, source, env):
+    ldict = {}
     with open(source[0].path) as fp:
-        exec(fp.read())
+        exec(fp.read(), globals(), ldict)
+    version = ldict['version']
     with open(target[0].path, 'w') as fp:
-        print >> fp, "#define VIPARR_VERSION \"%s\"" % version
-        print >> fp, "#define VIPARR_VERSION_HEX 0x%s" % hashlib.md5(version).hexdigest()[:6]
+        print("#define VIPARR_VERSION \"%s\"" % version, file=fp)
+        print("#define VIPARR_VERSION_HEX 0x%s" % hashlib.md5(version.encode()).hexdigest()[:6], file=fp)
 
 ver = env.Command('version.hxx', 'version.py', build_version_hxx)
 env.AddPythonModule('version.py', prefix='viparr')
