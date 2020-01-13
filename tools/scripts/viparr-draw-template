@@ -1,6 +1,7 @@
 #!/usr/bin/garden-exec
 #{
 # source `dirname $0`/../share/env.sh
+# garden load rdkit/2019.03.1-05c7/lib-python37
 # exec python $0 "$@"
 #}
 
@@ -28,20 +29,31 @@ def parse_args():
     parser.add_argument('--dotfile', default='topology.dot', help="file to write dot graph (default: topology.dot)")
     parser.add_argument('--pngfile', default='topology.png', help="file to write png graphviz output (default: topology.png)")
     parser.add_argument('--display', action='store_true', help="use ImageMagick to display file")
+    parser.add_argument('--rdkit', action='store_true', help="write Rdkit rendering instead of graphviz")
     return parser.parse_args()
 
 def main():
     args = parse_args()
-    with open(args.dotfile, 'w') as fp:
+    if args.rdkit:
         if os.path.basename(args.tplfile).startswith('templates'):
             mol = read_template(args.tplfile, args.tplname)
-            fp.write(viparr.SystemToDot(mol))
+            resid = None
         else:
             resid = int(args.tplname)
             mol, resid = read_residue(args.tplfile, resid)
-            fp.write(viparr.SystemToDot(mol, resid))
+        draw_molecule_rdkit(mol, args.pngfile, resid=resid)
+    else:
 
-    subprocess.check_call(['neato', '-Tpng', args.dotfile, '-o', args.pngfile])
+        with open(args.dotfile, 'w') as fp:
+            if os.path.basename(args.tplfile).startswith('templates'):
+                mol = read_template(args.tplfile, args.tplname)
+                fp.write(viparr.SystemToDot(mol))
+            else:
+                resid = int(args.tplname)
+                mol, resid = read_residue(args.tplfile, resid)
+                fp.write(viparr.SystemToDot(mol, resid))
+
+        subprocess.check_call(['neato', '-Tpng', args.dotfile, '-o', args.pngfile])
     if args.display:
         subprocess.check_call(['display', args.pngfile])
 
@@ -67,6 +79,18 @@ def read_residue(ifile, residue_id):
     assert len(atms)==1
     resid = atms[0].residue.id
     return mol, resid
+
+def draw_molecule_rdkit(mol, pngfile, resid=None):
+    from rdkit.Chem import AllChem, Draw
+    # handle external atoms
+    for a in mol.atoms:
+        if a.atomic_number < 0:
+            a.atomic_number = 92
+    rdmol = msys.ConvertToRdkit(mol)
+    AllChem.Compute2DCoords(rdmol)
+    svg = Draw.MolsToGridImage([rdmol], useSVG=True, subImgSize=(300,300))
+    with open(pngfile, 'w') as fp:
+        fp.write(svg)
 
 if __name__=='__main__':
     main()
