@@ -1,4 +1,8 @@
 Release Notes:
+    4.7.14  Fix build for python3
+            Added --rdkit option to draw-template.
+            Preserve ct fields when using ligand-selection.
+            
     4.7.13  - Add support for constraints on stretch_anharm terms
             - Update viparr-ffpublic docs
             - Prototype support for CMAP in amber forcefield files
