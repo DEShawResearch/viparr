@@ -2860,20 +2860,26 @@ def ApplyLigandForcefields(system, ligands, selection='all',
             print("\nLigand %d: %s" % (i, inchi))
 
     # Assign a ligand to each molecule in the selection
-    mappings = list() # [atoms], ligand, inchi
+    mappings = list() # [atoms], ligand, inchi, fields
     for fragid in sorted(fragids):
         inchi = get_inchi(system, 'fragid %d' % fragid)
         ligand = inchi_to_ligand.get(inchi)
         if ligand is None:
             raise ValueError("No ligand for molecule with fragid %d inchi %s" % (fragid, inchi))
         atoms = system.select('fragid %d' % fragid)
-        mappings.append([atoms, ligand, inchi])
+        fields = dict()
+        ct_ids = set(a.residue.chain.ct.id for a in atoms)
+        for ct_id in ct_ids:
+            ct = system.ct(ct_id)
+            for key in ct.keys():
+                fields[key] = ct[key]
+        mappings.append([atoms, ligand, inchi, fields])
         if verbose:
             print("Matched ligand with fragid %d to ligand %s" % (fragid, ligand.name))
 
     # for each mapping, construct a graph match between real atoms.
     for mapping in mappings:
-        atoms, ligand, inchi = mapping
+        atoms, ligand, inchi, fields = mapping
         mol_atoms = [a for a in atoms if a.atomic_number > 0]
         lig_atoms = [a for a in ligand.atoms if a.atomic_number > 0]
         mol_graph = msys.Graph(mol_atoms)
@@ -2918,6 +2924,8 @@ def ApplyLigandForcefields(system, ligands, selection='all',
                 assert(len(order) == ligand.natoms)
                 # keep the re-ordered ligand
                 mapping[1] = ligand.clone(order)
+                for k,v in fields.items():
+                    mapping[1].ct(0)[k] = v
                 break
         else:
             raise RuntimeError("No graph match found for ligand with fragid %d that preserves the inchi %s" % (
@@ -2930,7 +2938,7 @@ def ApplyLigandForcefields(system, ligands, selection='all',
     newmol = system.clone('none')
     system_fragids = [a.fragid for a in system.atoms]
 
-    for atoms, ligand, inchi in mappings:
+    for atoms, ligand, inchi, fields in mappings:
         lig_start = atoms[0].id
         initial = { i for i in ids if i < lig_start }
         # preserve bonds!
