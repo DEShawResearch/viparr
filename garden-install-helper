@@ -7,7 +7,6 @@ DESCRIPTION="Builds forcefields"
 
 SCONS=scons/3.1.2-01c7
 GCC=gcc/6.3.0-01c7
-PYTHON=desres-python/3.7.2-08c7
 SCONSUTILS=sconsutils/1.51c7
 
 loadmodules() {
@@ -16,7 +15,6 @@ loadmodules() {
     garden load \
         $SCONS/bin \
         $MSYS/lib \
-        $PYTHON/bin \
         $GCC/bin \
         $MSYS/lib-python37 \
         $SCONSUTILS/lib-python37 \

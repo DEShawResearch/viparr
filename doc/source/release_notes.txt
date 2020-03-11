@@ -1,4 +1,6 @@
 Release Notes:
+    4.7.15  Bump msys version.
+
     4.7.14  Fix build for python3
             Added --rdkit option to draw-template.
             Preserve ct fields when using ligand-selection.
