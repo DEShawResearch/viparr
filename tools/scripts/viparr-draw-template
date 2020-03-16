@@ -89,8 +89,19 @@ def draw_molecule_rdkit(mol, pngfile, resid=None):
     rdmol = msys.ConvertToRdkit(mol)
     AllChem.Compute2DCoords(rdmol)
     svg = Draw.MolsToGridImage([rdmol], useSVG=True, subImgSize=(300,300))
-    with open(pngfile, 'w') as fp:
-        fp.write(svg)
+
+    if pngfile.lower().endswith('svg'):
+        with open(pngfile, 'w') as fp:
+            fp.write(svg)
+    else:
+        import tempfile
+        with tempfile.NamedTemporaryFile(mode='w',
+                                        suffix='.svg',
+                                        delete=True) as tmpfile:
+            tmpfile.write(svg)
+            tmpfile.flush()
+            subprocess.check_call(['convert', tmpfile.name, pngfile])
+
 
 if __name__=='__main__':
     main()
