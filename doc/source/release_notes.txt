@@ -1,4 +1,7 @@
 Release Notes:
+    4.7.16  viparr_neutralize: handle divalent cations and nbfix terms.
+            Fix viparr-draw-template --rdkit saving SVGs
+
     4.7.15  Bump msys version.
 
     4.7.14  Fix build for python3
