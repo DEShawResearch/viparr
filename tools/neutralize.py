@@ -273,6 +273,8 @@ def Neutralize(mol, cation='NA', anion='CL',
             res.remove()
 
     assert not (residues_removed & keep_residues)
+    qtot = sum(a.charge for a in mol.atoms)
+    assert abs(qtot) < 0.01, f"Neutralization failed, total charge after neutralization is {qtot:.3f}!"
 
     mol.coalesceTables()
     return mol.clone()
