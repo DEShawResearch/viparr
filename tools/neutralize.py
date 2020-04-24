@@ -20,7 +20,19 @@ IONPROPS = {
         'Ca2+': (20,2),
         }
 
-def parse_ion(name, ffname, ffdir, ff, verbose):
+def parse_ff(ffname, ffdir, ff):
+    if ffdir != '' or ffname != '' or ff:
+        if ff:
+            if isinstance(ff,viparr.Forcefield):
+                ff = [ff]
+            else:
+                ff = list(ff)
+        else:
+            ffpath = ffdir or viparr.find_forcefield(ffname)
+            ff = viparr.ImportForcefield(ffpath)
+    return ff
+
+def parse_ion(name, ff, verbose):
     ionprop = IONPROPS.get(name)
     if ionprop is None: ionprop = IONPROPS.get(name.upper())
     if ionprop is None:
@@ -35,19 +47,8 @@ def parse_ion(name, ffname, ffdir, ff, verbose):
     atom.atomic_number=anum
     atom.charge=charge
     atom.mass = msys.MassForElement(anum)
-
-    if ffdir != '' or ffname != '' or ff:
-        if ff:
-            if isinstance(ff,viparr.Forcefield):
-                ff = [ff]
-            else:
-                ff = list(ff)
-        else:
-            ffpath = ffdir or viparr.find_forcefield(ffname)
-            ff = [viparr.ImportForcefield(ffpath)]
-            if verbose:
-                print('Applying forcefield ' + ffpath + ' to ion ' + name)
-        viparr.ExecuteViparr(ionsys, ff, verbose=verbose)
+    if ff:
+        viparr.ExecuteViparr(ionsys, [ff], verbose=verbose)
 
     return ionsys
 
@@ -125,8 +126,9 @@ def Neutralize(mol, cation='NA', anion='CL',
     # first, we add sufficient counterions to neutralize.  Then we add 
     # counterions and counter-counterions until counter-counterions are
     # up to the desired concentration.  
-    cationsys = parse_ion(cation, ffname, ffdir, ff, verbose)
-    anionsys = parse_ion(anion, ffname, ffdir, ff, verbose)
+    ff = parse_ff(ffname, ffdir, ff)
+    cationsys = parse_ion(cation, ff, verbose)
+    anionsys = parse_ion(anion, ff, verbose)
     cationatom = cationsys.atoms[0]
     anionatom = anionsys.atoms[0]
 
@@ -281,10 +283,22 @@ def Neutralize(mol, cation='NA', anion='CL',
             res.remove()
 
     assert not (residues_removed & keep_residues)
+
+    if ff and ff.rules.nbfix_identifier:
+        if verbose:
+            print("nbfix terms in ion forcefield; re-running viparr to generate overrides")
+        ffs = [ff]
+        fftable = mol.auxtable('forcefield')
+        for p in fftable.params:
+            ffs.append(viparr.ImportForcefield(p['path']))
+        for table in mol.tables: table.remove()
+        mol = mol.clone('atomicnumber > 0')
+        viparr.ExecuteViparr(mol, ffs, verbose=verbose, verbose_matching=False)
+    else:
+        mol.coalesceTables()
+
     qtot = sum(a.charge for a in mol.atoms)
     assert abs(qtot) < 0.01, f"Neutralization failed, total charge after neutralization is {qtot:.3f}!"
-
-    mol.coalesceTables()
     return mol.clone()
 
 __doc = \
