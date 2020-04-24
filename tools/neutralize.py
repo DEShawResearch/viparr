@@ -174,9 +174,17 @@ def Neutralize(mol, cation='NA', anion='CL',
     if verbose:
         print("Starting with %d water molecules" % ntotalwat)
     cgratio = math.fabs(otheratom.charge/ionatom.charge)
-    nother = int((concentration/55.345) * (ntotalwat-nions+nions_prev))
-    nions += int(nother*cgratio)
+    nother = round((concentration/55.345) * (ntotalwat-nions+nions_prev))
+    nions += round(nother*cgratio)
 
+    qtot = sum(a.charge for a in mol.atoms)
+    qnew = qtot + nother*otheratom.charge + nions*ionatom.charge
+    if abs(qnew) > 0.001:
+        # this can happen if cgratio > 1.
+        if abs(ionatom.charge) < abs(otheratom.charge):
+            nions -= round(qnew / ionatom.charge)
+        else:
+            nother -= round(qnew/otheratom.charge)
 
     if nions >= 0 and verbose:
         print("New system should contain %d %s ions" % (nions, ionatom.name))
