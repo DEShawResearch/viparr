@@ -26,4 +26,4 @@ env.AddShare('env.sh')
 
 if 'BUILD_WHEEL' in os.environ:
     env['WHEEL_DIR'] = 'wheel'
-    env.AddWheel('pyproject.toml', pyver='37')
+    env.AddWheel('pyproject.toml', pyver='36')
