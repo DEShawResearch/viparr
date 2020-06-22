@@ -7,7 +7,7 @@ garden env-keep-only HOME
 SCONS=scons/3.1.2-01c7
 SCONSUTILS=sconsutils/1.51c7
 BOOST=boost/1.57.0-02c7
-PYTHON3=desres-python/3.7.6-04c7
+PYTHON3=desres-python/3.6.6-04c7
 
 MSYS_PREFIX=$HOME/git/gerrit/msys/build
 
@@ -16,13 +16,11 @@ loadmodules() {
         $SCONS/bin \
         $BOOST/lib \
         $PYTHON3/bin \
-        $SCONSUTILS/lib-python37 \
         enscons/0.23.0-01c7/lib-python37 \
-
-    garden load desres-python/3.6.6-04c7/bin
 
     garden prepend-path DESRES_MODULE_CXXFLAGS "-fpermissive -I$MSYS_PREFIX/include"
     garden prepend-path DESRES_MODULE_LDFLAGS "-L$MSYS_PREFIX/lib -Wl,-rpath,$MSYS_PREFIX/lib"
+    garden prepend-path PYTHONPATH $(dirname $0)
     export PYTHONVER=36
 }
 

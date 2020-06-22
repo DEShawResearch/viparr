@@ -2,8 +2,15 @@ import os, msys, viparr
 import numpy
 
 mydir = os.path.dirname(__file__)
-WAT=os.path.join(mydir, '..', '..', '..', '..', 'share', 'solvate', 'h2o.dms')
-TIP3PWAT=os.path.join(mydir, '..', '..', '..', '..', 'share', 'solvate', 'h2o.tip3p.dms')
+
+WAT=os.path.join(mydir, 'h2o.dms')
+if not os.path.isfile(WAT):
+    WAT=os.path.join(mydir, '..', '..', '..', '..', 'share', 'solvate', 'h2o.dms')
+
+TIP3PWAT=os.path.join(mydir, 'h2o.tip3p.dms')
+if not os.path.isfile(TIP3PWAT):
+    TIP3PWAT=os.path.join(mydir, '..', '..', '..', '..', 'share', 'solvate', 'h2o.tip3p.dms')
+
 WATRAD = 2.4
 WATSEL = 'oxygen'
 WATCON = 1.0
