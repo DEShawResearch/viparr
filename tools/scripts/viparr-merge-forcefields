@@ -4,7 +4,26 @@
 # exec python $0 "$@"
 #}
 
-from __future__ import print_function
+"""
+Merges forcefield patches into a source forcefield. Using the ``output_ff`` to
+parametrize a system with ``viparr`` is equivalent to directly specifying the
+merge in the ``viparr`` call. Forcefield patches are merged sequentially into
+the source forcefield in the order in which they are specified.
+
+Plugins are merged in the rules files with the plugins of the patch forcefield
+coming after those of the source forcefield. VDW functional forms, VDW combine
+rules, exclusions rules, and scale factors, if specified in both the source and
+patch forcefields, must agree. Templates in the patch forcefield are added to
+the source forcefield and overwrite those in the source forcefield of the same
+name. Parameters in the patch forcefield overwrite those in the source
+forcefield having the same `type` fields (i.e. matching the same atom types);
+the merged parameter file will begin with the parameters in the patch forcefield
+not found in the source forcefield, followed by the parameters of the source
+forcefield possibly overwritten by ones from the patch matching the same types.
+Cmap tables in the patch forcefield, if present, overwrite all cmap tables in
+the source forcefield.
+"""
+
 import argparse
 import os
 import shutil
@@ -19,7 +38,8 @@ class Action(argparse.Action):
         dest.append((option_string, value))
 
 def parse_args():
-    parser = argparse.ArgumentParser(description=__doc__)
+    parser = argparse.ArgumentParser(description=__doc__,
+                            formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("outdir",
             help="Destination directory")
     parser.add_argument("-d", "--ffdir",  action=Action, dest='ff', default=[])

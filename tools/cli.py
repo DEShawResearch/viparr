@@ -1,4 +1,57 @@
-from __future__ import print_function
+
+"""
+``viparr`` applies forcefield parameters to a chemical system. This occurs in
+four main steps:
+
+#. Any forcefield patches specified with -m or -a are merged with the last
+   preceding -d or -f forcefield.
+
+#. The resulting forcefields are used to typify the selected atoms of the
+   chemical system. Each bonded molecule in the atom selection is typified by
+   the first forcefield that can match all of its atoms.
+
+#. The parameters of each forcefield are applied to the atoms typified by that
+   forcefield using the plugins specified in the forcefield's rules file.
+
+#. Post-processing steps are applied to build constraints, equate masses of
+   atoms of the same element, and reorder atom IDs. These steps may be
+   controlled by the available command-line flags.
+
+The ``input_system`` may be in MAE or DMS format. To use template-based
+forcefields with residue templates, atoms in the input system must be correctly
+demarcated into residues using a combination of fragment, chain name/ID, and
+residue name/ID. Residues in different fragments and different chains can have
+the same residue number. ``viparr`` uses atomic number and bond structure (graph
+isomorphism) to match residues to forcefield templates; atom, residue, and
+template names are ignored in the matching process.
+
+During parameter matching, the plugins determine how the matching is to be done
+(i.e. which permutations of an atom tuple can be matched to each row of the
+forcefield's parameter table, whether to match bond orders if they are present
+in the parameter table, how to apply the matches to the output system, etc.).
+An atom tuple will be matched to the parameter row specifying its atom types
+exactly or the first row that matches its atom types with at least one wildcard
+'*' type.
+
+To avoid ambiguity, the VDW functional form and VDW combine rule, if defined in
+multiple forcefields or forcefield patches, must be identical. If ``selection``
+does not contain the entire chemical system, then the existing VDW functional
+form and VDW combine rule of the system are preserved and must match those
+defined in the forcefields as well. If no VDW functional forms or combine rules
+are specified, defaults of ``lj12_6_sig_epsilon`` and ``geometric`` are assumed.
+
+Unless ``--reorder-ids`` is specified, ``viparr`` preserves the input atom IDs
+in the output DMS file. ``viparr`` also preserves residue numbering and chain
+numbering, as well as atom and residue names by default. Existing pseudo atoms
+with atomic number 0, bonds to these pseudo atoms, forcefield parameters, and
+constraints in the input DMS file corresponding to the given ``selection`` are
+discarded, and new pseudo atoms, pseudo bonds, parameters, and constraints are
+added for this ``selection`` in ``output.dms``. If ``selection`` does not
+contain the entire system, then pseudo atoms, pseudo bonds, parameters, and
+constraints for the molecules not in the selection are preserved in
+``output.dms``.
+"""
+
 import msys
 import viparr
 
@@ -64,7 +117,9 @@ class FFAppendAction(argparse.Action):
         viparr.MergeForcefields(target, patch, True)
 
 def parser():
-    parser = argparse.ArgumentParser(description=__doc__, usage=PrintAvailableForcefields())
+    parser = argparse.ArgumentParser(description=__doc__,
+            formatter_class=argparse.RawDescriptionHelpFormatter,
+            usage=PrintAvailableForcefields())
     parser.add_argument("input", help="input dms file")
     parser.add_argument("output", help="output dms file")
     parser.add_argument("--ffdir", "-d", dest='fflist', default=[], action=FFDirAction,

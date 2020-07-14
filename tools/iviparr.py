@@ -1,4 +1,15 @@
-from __future__ import print_function
+"""
+Creates a forcefield from a parametrized chemical system. The selected atoms
+should correspond to a set of fragments that were parametrized using a single
+forcefield. A separate template is created for each residue of the selected
+atoms, and parameter tables are created from the forcefield parameters in the
+system. As certain aspects of the rules file cannot be deduced from the chemical
+system, the program requires an input forcefield, specified by -f or -d, to use
+only the rules file contained in that forcefield. ``iviparr`` will exit in error
+if it is unable to construct a template-based forcefield that can yield the
+given parametrized system when run using ``viparr``, e.g. if there are multiple
+residues of the system with identical bond topology but different parameters.
+"""
 
 import sys, os, argparse
 import msys
@@ -21,7 +32,8 @@ def configure(parser):
                         help="Ignore differences between input system and system paramterized with generated forcefield")
 
 def main():
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(description=__doc__,
+                            formatter_class=argparse.RawDescriptionHelpFormatter)
     configure(parser)
     args = parser.parse_args()
     ff_name = args.ffdir or args.ffname

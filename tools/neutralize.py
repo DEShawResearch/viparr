@@ -1,4 +1,12 @@
-from __future__ import print_function
+"""
+Adds or removes ions from a chemical system in order to neutralize the charge
+and attain a specified ionic concentration. A forcefield may be provided to
+parametrize any added ions. Randomly selected water molecules may be removed
+from the system to make room for the added ions. In the following, counterions
+are those with opposite charge from the solute (required to neutralize the
+charge of the system), and counter-counterions are those of the same charge as
+the solute (possibly required to achieve a desired ionic concentration).
+"""
 
 import os, msys, viparr, math
 from collections import namedtuple
@@ -316,53 +324,54 @@ cations = ', '.join(x for x in IONS if IONS[x][1] > 0)
 anions  = ', '.join(x for x in IONS if IONS[x][1] < 0)
 
 def main():
-    import optparse
-    parser = optparse.OptionParser(__doc__)
+    import argparse
+    parser = argparse.ArgumentParser(
+            description=__doc__,
+            formatter_class=argparse.RawDescriptionHelpFormatter)
 
-    parser.add_option('-p', '--cation', default='NA', 
+    parser.add_argument('ifile', help='input DMS file')
+    parser.add_argument('ofile', help='output DMS file')
+    parser.add_argument('-p', '--cation', default='NA', 
             help='Species of cation: one of %s' % cations)
-    parser.add_option('-n', '--anion', default='CL',
+    parser.add_argument('-n', '--anion', default='CL',
             help='Species of anion: one of %s' % anions)
-    parser.add_option('-c', '--chain', default='ION',
+    parser.add_argument('-c', '--chain', default='ION',
             help='Chain name for counterions')
-    parser.add_option('-C', '--chain2', default='ION2',
+    parser.add_argument('-C', '--chain2', default='ION2',
             help='Chain name for counter-counterions')
-    parser.add_option('-s', '--solute-pad', default=5.0, type='float',
+    parser.add_argument('-s', '--solute-pad', default=5.0, type=float,
             help='minimum distance between placed ions and solute')
-    parser.add_option('-i', '--ion-pad', default=3.0, type='float',
+    parser.add_argument('-i', '--ion-pad', default=3.0, type=float,
             help='minimum distance between placed ions')
-    parser.add_option('-m', '--concentration', default=0.0, type='float',
+    parser.add_argument('-m', '--concentration', default=0.0, type=float,
             help='molar concentration of counter-counterions')
-    parser.add_option('-k', '--keep', default='none',
+    parser.add_argument('-k', '--keep', default='none',
             help='Atomsel of ions/waters that should not be deleted or replaced')
-    parser.add_option('-v', '--verbose', default=False, action='store_true')
-    parser.add_option('--no-ff', default=False, action='store_true',
+    parser.add_argument('-v', '--verbose', default=False, action='store_true')
+    parser.add_argument('--no-ff', default=False, action='store_true',
             help='Delete all forcefield information')
-    parser.add_option('--ffname', default='',
+    parser.add_argument('--ffname', default='',
             help='forcefield name, if forcefield is to be applied to new ions')
-    parser.add_option('--ffdir', default='',
+    parser.add_argument('--ffdir', default='',
             help="""explicit forcefield directory, if forcefield is to be 
             applied to new ions""")
-    parser.add_option('--random-seed', default=0,
+    parser.add_argument('--random-seed', default=0,
             help="""seed for random number generator to determine which
             water molecules to replace""")
 
-    opts, args = parser.parse_args()
-    if len(args)!=2:
-        parser.error("incorrect number of arguments")
+    args = parser.parse_args()
 
-    if opts.no_ff:
-        if opts.ffname or opts.ffdir:
+    if args.no_ff:
+        if args.ffname or args.ffdir:
             parser.error("Cannot specify both --no-ff and a forcefield")
     else:
-        if bool(opts.ffname) == bool(opts.ffdir):
+        if bool(args.ffname) == bool(args.ffdir):
             parser.error("Must specify exactly one forcefield, or --no-ff")
 
-    ifile, ofile = args
-    if opts.verbose:
-        print("Loading input file <%s>" % ifile)
-    mol = msys.Load(ifile, structure_only=opts.no_ff)
-    cfg = opts.__dict__
+    if args.verbose:
+        print("Loading input file <%s>" % args.ifile)
+    mol = msys.Load(args.ifile, structure_only=args.no_ff)
+    cfg = args.__dict__
     del cfg['no_ff']
 
     if not mol.table_names:
@@ -377,7 +386,7 @@ change the net charge.")
     mol.coalesceTables()
     mol=mol.clone()
 
-    if opts.verbose:
-        print("Writing DMS file <%s>" % ofile)
-    msys.SaveDMS(mol, ofile)
+    if args.verbose:
+        print("Writing DMS file <%s>" % args.ofile)
+    msys.SaveDMS(mol, args.ofile)
 
