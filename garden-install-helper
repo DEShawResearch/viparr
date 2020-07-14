@@ -65,9 +65,9 @@ case $1 in
     --install)
 	loadmodules
         nprocs=`nproc`
-        $0 --exec scons -j$nprocs install PREFIX=${PREFIX} # OBJDIR=$TMPDIR
+        $0 --exec scons -j$nprocs install PREFIX=${PREFIX} OBJDIR=$TMPDIR
 
-        #runtests
+        runtests
         $PREFIX/bin/viparr -h > /dev/null
         $PREFIX/bin/viparr_neutralize -h > /dev/null
         $PREFIX/bin/viparr_solvate -h > /dev/null
