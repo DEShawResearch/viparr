@@ -1,4 +1,7 @@
 Release Notes:
+    4.7.19  viparr_neutralize: better handling of nbfix terms.
+            Documentation improvements.
+
     4.7.18  viparr_neutralize: handle divalent cations and nbfix terms.
             Fix viparr-draw-template --rdkit saving SVGs
 
