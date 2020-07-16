@@ -296,13 +296,11 @@ def Neutralize(mol, cation='NA', anion='CL',
     if ff and ff.rules.nbfix_identifier:
         if verbose:
             print("nbfix terms in ion forcefield; re-running viparr to generate overrides")
-        ffs = [ff]
-        fftable = mol.auxtable('forcefield')
-        for p in fftable.params:
-            ffs.append(viparr.ImportForcefield(p['path']))
-        for table in mol.tables: table.remove()
-        mol = mol.clone('atomicnumber > 0')
-        viparr.ExecuteViparr(mol, ffs, verbose=verbose, verbose_matching=False)
+        vdw2 = mol.addTable("vdw2", 1, viparr.Forcefield.ParamTable('vdw2'))
+        for p in vdw2.params.params:
+            vdw2.addTerm([mol.atom(0)], p)
+        viparr.CompilePlugins.ApplyNBFix(mol)
+        vdw2.remove()
     else:
         mol.coalesceTables()
 
