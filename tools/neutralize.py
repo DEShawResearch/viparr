@@ -368,10 +368,13 @@ def main():
         if bool(args.ffname) == bool(args.ffdir):
             parser.error("Must specify exactly one forcefield, or --no-ff")
 
-    if args.verbose:
-        print("Loading input file <%s>" % args.ifile)
-    mol = msys.Load(args.ifile, structure_only=args.no_ff)
     cfg = args.__dict__
+    ifile = cfg.pop('ifile')
+    ofile = cfg.pop('ofile')
+
+    if args.verbose:
+        print("Loading input file <%s>" % ifile)
+    mol = msys.Load(ifile, structure_only=args.no_ff)
     del cfg['no_ff']
 
     if not mol.table_names:
@@ -387,6 +390,6 @@ change the net charge.")
     mol=mol.clone()
 
     if args.verbose:
-        print("Writing DMS file <%s>" % args.ofile)
-    msys.SaveDMS(mol, args.ofile)
+        print("Writing DMS file <%s>" % ofile)
+    msys.SaveDMS(mol, ofile)
 
