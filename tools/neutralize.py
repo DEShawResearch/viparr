@@ -1,4 +1,12 @@
-from __future__ import print_function
+"""
+Adds or removes ions from a chemical system in order to neutralize the charge
+and attain a specified ionic concentration. A forcefield may be provided to
+parametrize any added ions. Randomly selected water molecules may be removed
+from the system to make room for the added ions. In the following, counterions
+are those with opposite charge from the solute (required to neutralize the
+charge of the system), and counter-counterions are those of the same charge as
+the solute (possibly required to achieve a desired ionic concentration).
+"""
 
 import os, msys, viparr, math
 from collections import namedtuple
@@ -20,7 +28,19 @@ IONPROPS = {
         'Ca2+': (20,2),
         }
 
-def parse_ion(name, ffname, ffdir, ff, verbose):
+def parse_ff(ffname, ffdir, ff):
+    if ffdir != '' or ffname != '' or ff:
+        if ff:
+            if isinstance(ff,viparr.Forcefield):
+                ff = [ff]
+            else:
+                ff = list(ff)
+        else:
+            ffpath = ffdir or viparr.find_forcefield(ffname)
+            ff = viparr.ImportForcefield(ffpath)
+    return ff
+
+def parse_ion(name, ff, verbose):
     ionprop = IONPROPS.get(name)
     if ionprop is None: ionprop = IONPROPS.get(name.upper())
     if ionprop is None:
@@ -35,19 +55,8 @@ def parse_ion(name, ffname, ffdir, ff, verbose):
     atom.atomic_number=anum
     atom.charge=charge
     atom.mass = msys.MassForElement(anum)
-
-    if ffdir != '' or ffname != '' or ff:
-        if ff:
-            if isinstance(ff,viparr.Forcefield):
-                ff = [ff]
-            else:
-                ff = list(ff)
-        else:
-            ffpath = ffdir or viparr.find_forcefield(ffname)
-            ff = [viparr.ImportForcefield(ffpath)]
-            if verbose:
-                print('Applying forcefield ' + ffpath + ' to ion ' + name)
-        viparr.ExecuteViparr(ionsys, ff, verbose=verbose)
+    if ff:
+        viparr.ExecuteViparr(ionsys, [ff], verbose=verbose)
 
     return ionsys
 
@@ -125,8 +134,9 @@ def Neutralize(mol, cation='NA', anion='CL',
     # first, we add sufficient counterions to neutralize.  Then we add 
     # counterions and counter-counterions until counter-counterions are
     # up to the desired concentration.  
-    cationsys = parse_ion(cation, ffname, ffdir, ff, verbose)
-    anionsys = parse_ion(anion, ffname, ffdir, ff, verbose)
+    ff = parse_ff(ffname, ffdir, ff)
+    cationsys = parse_ion(cation, ff, verbose)
+    anionsys = parse_ion(anion, ff, verbose)
     cationatom = cationsys.atoms[0]
     anionatom = anionsys.atoms[0]
 
@@ -177,15 +187,24 @@ def Neutralize(mol, cation='NA', anion='CL',
     nother = int((concentration/55.345) * (ntotalwat-nions+nions_prev))
     nions += int(nother*cgratio)
 
+    # subtract off the ions already present in solution
+    nions -= nions_prev
+    nother -= nother_prev
+
+    qtot = sum(a.charge for a in mol.atoms)
+    qnew = qtot + nother*otheratom.charge + nions*ionatom.charge
+    if abs(qnew) > 0.001:
+        # this can happen if cgratio > 1.
+        if abs(ionatom.charge) < abs(otheratom.charge):
+            nions -= round(qnew / ionatom.charge)
+        else:
+            nother -= round(qnew/otheratom.charge)
 
     if nions >= 0 and verbose:
         print("New system should contain %d %s ions" % (nions, ionatom.name))
     if nother >= 0 and verbose:
         print("New system should contain %d %s ions" % (nother, otheratom.name))
 
-    # subtract off the ions already present in solution
-    nions -= nions_prev
-    nother -= nother_prev
     if nions < 0:
         # delete ions
         sel=mol.select('atomicnumber %d and not bonded and not (%s)' %
@@ -274,7 +293,19 @@ def Neutralize(mol, cation='NA', anion='CL',
 
     assert not (residues_removed & keep_residues)
 
-    mol.coalesceTables()
+    if ff and ff.rules.nbfix_identifier:
+        if verbose:
+            print("nbfix terms in ion forcefield; re-running viparr to generate overrides")
+        vdw2 = mol.addTable("vdw2", 1, viparr.Forcefield.ParamTable('vdw2'))
+        for p in vdw2.params.params:
+            vdw2.addTerm([mol.atom(0)], p)
+        viparr.CompilePlugins.ApplyNBFix(mol)
+        vdw2.remove()
+    else:
+        mol.coalesceTables()
+
+    qtot = sum(a.charge for a in mol.atoms)
+    assert abs(qtot) < 0.01, f"Neutralization failed, total charge after neutralization is {qtot:.3f}!"
     return mol.clone()
 
 __doc = \
@@ -291,53 +322,57 @@ cations = ', '.join(x for x in IONS if IONS[x][1] > 0)
 anions  = ', '.join(x for x in IONS if IONS[x][1] < 0)
 
 def main():
-    import optparse
-    parser = optparse.OptionParser(__doc__)
+    import argparse
+    parser = argparse.ArgumentParser(
+            description=__doc__,
+            formatter_class=argparse.RawDescriptionHelpFormatter)
 
-    parser.add_option('-p', '--cation', default='NA', 
+    parser.add_argument('ifile', help='input DMS file')
+    parser.add_argument('ofile', help='output DMS file')
+    parser.add_argument('-p', '--cation', default='NA', 
             help='Species of cation: one of %s' % cations)
-    parser.add_option('-n', '--anion', default='CL',
+    parser.add_argument('-n', '--anion', default='CL',
             help='Species of anion: one of %s' % anions)
-    parser.add_option('-c', '--chain', default='ION',
+    parser.add_argument('-c', '--chain', default='ION',
             help='Chain name for counterions')
-    parser.add_option('-C', '--chain2', default='ION2',
+    parser.add_argument('-C', '--chain2', default='ION2',
             help='Chain name for counter-counterions')
-    parser.add_option('-s', '--solute-pad', default=5.0, type='float',
+    parser.add_argument('-s', '--solute-pad', default=5.0, type=float,
             help='minimum distance between placed ions and solute')
-    parser.add_option('-i', '--ion-pad', default=3.0, type='float',
+    parser.add_argument('-i', '--ion-pad', default=3.0, type=float,
             help='minimum distance between placed ions')
-    parser.add_option('-m', '--concentration', default=0.0, type='float',
+    parser.add_argument('-m', '--concentration', default=0.0, type=float,
             help='molar concentration of counter-counterions')
-    parser.add_option('-k', '--keep', default='none',
+    parser.add_argument('-k', '--keep', default='none',
             help='Atomsel of ions/waters that should not be deleted or replaced')
-    parser.add_option('-v', '--verbose', default=False, action='store_true')
-    parser.add_option('--no-ff', default=False, action='store_true',
+    parser.add_argument('-v', '--verbose', default=False, action='store_true')
+    parser.add_argument('--no-ff', default=False, action='store_true',
             help='Delete all forcefield information')
-    parser.add_option('--ffname', default='',
+    parser.add_argument('--ffname', default='',
             help='forcefield name, if forcefield is to be applied to new ions')
-    parser.add_option('--ffdir', default='',
+    parser.add_argument('--ffdir', default='',
             help="""explicit forcefield directory, if forcefield is to be 
             applied to new ions""")
-    parser.add_option('--random-seed', default=0,
+    parser.add_argument('--random-seed', default=0,
             help="""seed for random number generator to determine which
             water molecules to replace""")
 
-    opts, args = parser.parse_args()
-    if len(args)!=2:
-        parser.error("incorrect number of arguments")
+    args = parser.parse_args()
 
-    if opts.no_ff:
-        if opts.ffname or opts.ffdir:
+    if args.no_ff:
+        if args.ffname or args.ffdir:
             parser.error("Cannot specify both --no-ff and a forcefield")
     else:
-        if bool(opts.ffname) == bool(opts.ffdir):
+        if bool(args.ffname) == bool(args.ffdir):
             parser.error("Must specify exactly one forcefield, or --no-ff")
 
-    ifile, ofile = args
-    if opts.verbose:
+    cfg = args.__dict__
+    ifile = cfg.pop('ifile')
+    ofile = cfg.pop('ofile')
+
+    if args.verbose:
         print("Loading input file <%s>" % ifile)
-    mol = msys.Load(ifile, structure_only=opts.no_ff)
-    cfg = opts.__dict__
+    mol = msys.Load(ifile, structure_only=args.no_ff)
     del cfg['no_ff']
 
     if not mol.table_names:
@@ -352,7 +387,7 @@ change the net charge.")
     mol.coalesceTables()
     mol=mol.clone()
 
-    if opts.verbose:
+    if args.verbose:
         print("Writing DMS file <%s>" % ofile)
     msys.SaveDMS(mol, ofile)
 

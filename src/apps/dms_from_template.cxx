@@ -10,11 +10,26 @@
 
 using namespace desres;
 using namespace desres::viparr;
+namespace po = boost::program_options;
+
+static const char* helpmsg = 
+"\n"
+"Constructs DMS system files from templates. This will construct one DMS file\n"
+"for each specified template and export it to `tplname.dms`. The DMS file will\n"
+"not contain forcefield information.\n"
+"\n";
+
+static void show_help(const char* prog, po::options_description const& opts) {
+    std::cerr << "Usage:\n";
+    std::cerr << "  " << prog
+              << " template_file [ template_name ... ]\n";
+    std::cerr << helpmsg;
+    std::cerr << opts << std::endl;
+}
 
 int main(int argc, char *argv[]) {
 
     /* Parse command line */
-    namespace po = boost::program_options;
     po::options_description hidden_opts("Hidden options");
     hidden_opts.add_options()
         ("help", "display help message")
@@ -32,15 +47,11 @@ int main(int argc, char *argv[]) {
         po::notify(vm);
     } catch (po::error) {
         std::cerr << "Error: Unrecognized arguments\n";
-        std::cerr << "Usage:\n";
-        std::cerr << "  " << argv[0]
-                  << " template_file [ template_name ... ]\n";
+        show_help(argv[0], all_opts);
         return 1;
     }
     if (vm.count("help")) {
-        std::cout << "Usage:\n";
-        std::cout << "  " << argv[0]
-                  << " template_file [ template_name ... ]\n";
+        show_help(argv[0], all_opts);
         return 0;
     }
     std::string tplfile;
@@ -52,9 +63,7 @@ int main(int argc, char *argv[]) {
         std::copy( tmp.begin(), tmp.end(), std::inserter( tplname, tplname.end() ) );
     } else {
         std::cerr << "Error: Missing arguments\n";
-        std::cerr << "Usage:\n";
-        std::cerr << "  "
-                  << argv[0] << " template_file [ template_name ... ]\n";
+        show_help(argv[0], all_opts);
         return 1;
     }
     

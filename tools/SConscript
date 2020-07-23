@@ -3,8 +3,6 @@ Import('env')
 for f in Glob('scripts/*'):
     env.AddScript(f.get_path())
 
-env.AddScript('build_constraints', 'scripts/viparr-build-constraints')
-
 env.AddPythonModule('cli.py', prefix='viparr')
 env.AddPythonModule('compare.py', prefix='viparr')
 env.AddPythonModule('iviparr.py', prefix='viparr')

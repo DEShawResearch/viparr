@@ -2,8 +2,15 @@ import os, msys, viparr
 import numpy
 
 mydir = os.path.dirname(__file__)
-WAT=os.path.join(mydir, '..', '..', '..', '..', 'share', 'solvate', 'h2o.dms')
-TIP3PWAT=os.path.join(mydir, '..', '..', '..', '..', 'share', 'solvate', 'h2o.tip3p.dms')
+
+WAT=os.path.join(mydir, 'h2o.dms')
+if not os.path.isfile(WAT):
+    WAT=os.path.join(mydir, '..', '..', '..', '..', 'share', 'solvate', 'h2o.dms')
+
+TIP3PWAT=os.path.join(mydir, 'h2o.tip3p.dms')
+if not os.path.isfile(TIP3PWAT):
+    TIP3PWAT=os.path.join(mydir, '..', '..', '..', '..', 'share', 'solvate', 'h2o.tip3p.dms')
+
 WATRAD = 2.4
 WATSEL = 'oxygen'
 WATCON = 1.0
@@ -123,9 +130,9 @@ def Solvate(mol, watbox=None, dims=None, center=None,
     ny = int(dims[1]/watsize[1]) + 1
     nz = int(dims[2]/watsize[2]) + 1
 
-    xshift = -0.5 * (nx-1)*watsize[0]
-    yshift = -0.5 * (ny-1)*watsize[1]
-    zshift = -0.5 * (nz-1)*watsize[2]
+    xshift = center[0] -0.5 * (nx-1)*watsize[0]
+    yshift = center[1] -0.5 * (ny-1)*watsize[1]
+    zshift = center[2] -0.5 * (nz-1)*watsize[2]
 
     # replicate the template water box
     if verbose: print("replicating %d x %d x %d" % (nx,ny,nz))

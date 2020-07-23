@@ -14,6 +14,13 @@ template file, and the residue should be the name of a template in the file.
 Otherwise, the input is treated as a molecular system, and the residue argument
 is treated as a 0-based unique residue id (not to be confused with the pdb resid),
 as reported by viparr when template matching fails.
+
+Creates a PNG image of a forcefield template, specified by a template file and
+the name of a particular template in that file. The program constructs a
+dot-format text file of the template graph, saves it to the given output path,
+calls the shell command `neato -Tpng dotfile -o pngfile` to convert the dot file
+to a PNG image file using graphviz, saves the image file to the given output
+path, and displays the PNG image using **eog**.
 '''
 
 import os
@@ -22,13 +29,14 @@ import viparr
 import subprocess
 
 def parse_args():
-    from argparse import ArgumentParser
-    parser = ArgumentParser(description=__doc__)
+    from argparse import ArgumentParser, RawDescriptionHelpFormatter
+    parser = ArgumentParser(description=__doc__,
+                            formatter_class=RawDescriptionHelpFormatter)
     parser.add_argument('tplfile', metavar='INPUT_FILE', help='template or structure file')
     parser.add_argument('tplname', metavar='RESIDUE',    help='template name or residue id')
     parser.add_argument('--dotfile', default='topology.dot', help="file to write dot graph (default: topology.dot)")
     parser.add_argument('--pngfile', default='topology.png', help="file to write png graphviz output (default: topology.png)")
-    parser.add_argument('--display', action='store_true', help="use ImageMagick to display file")
+    parser.add_argument('--display', action='store_true', help="use EOG to display file")
     parser.add_argument('--rdkit', action='store_true', help="write Rdkit rendering instead of graphviz")
     return parser.parse_args()
 
@@ -55,7 +63,7 @@ def main():
 
         subprocess.check_call(['neato', '-Tpng', args.dotfile, '-o', args.pngfile])
     if args.display:
-        subprocess.check_call(['display', args.pngfile])
+        subprocess.check_call(['eog', args.pngfile])
 
 def read_template(tplfile, tplname):
     templates = viparr.ImportTemplates(tplfile)

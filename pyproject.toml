@@ -1,0 +1,19 @@
+[build-system]
+requires = ["pytoml>=0.1", "scons", "enscons>=0.23"]
+build-backend = "enscons.api"
+
+[tool.enscons]
+name="viparr"
+version="4.7.18"
+packages=["viparr"]
+install_requires=["wheel"]
+description="Viparr - for forcefields"
+#description_file="README.rst"
+license="BSD-3"
+classifiers=[
+  "Programming Language :: Python :: 3.6",
+]
+keywords=["packaging", "wheel"]
+author="DESRES"
+url="github.com/DEShawResearch/viparr"
+

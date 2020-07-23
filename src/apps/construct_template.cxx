@@ -9,11 +9,27 @@
 
 using namespace desres;
 using namespace desres::viparr;
+namespace po = boost::program_options;
+
+static const char* helpmsg = 
+"\n"
+"Creates a forcefield template from a selection of atoms in a chemical system.\n"
+"This populates only the atom and bond lists of the template using the bond\n"
+"topology of the system; it does not create lists of impropers, exclusions, etc.\n"
+"To create a full template from a parametrized chemical system, use ``iviparr``.\n"
+;
+
+static void show_help(const char* prog, po::options_description const& opts) {
+    std::cerr << "Usage:\n";
+    std::cerr << "  " << prog
+        << " structure-file selection out-template [ options ]\n";
+    std::cerr << helpmsg;
+    std::cerr << opts << std::endl;
+}
 
 int main(int argc, char *argv[]) {
 
     /* Parse command line */
-    namespace po = boost::program_options;
     po::options_description available_opts("Available options");
     available_opts.add_options()
         ("by-residue", "create a separate template for each residue")
@@ -36,17 +52,11 @@ int main(int argc, char *argv[]) {
         po::notify(vm);
     } catch (po::error) {
         std::cerr << "Error: Unrecognized arguments\n";
-        std::cerr << "Usage:\n";
-        std::cerr << "  " << argv[0]
-            << " structure-file selection out-template [ options ]\n";
-        std::cerr << available_opts << std::endl;
+        show_help(argv[0], available_opts);
         return 1;
     }
     if (vm.count("help")) {
-        std::cout << "Usage:\n";
-        std::cout << "  " << argv[0]
-            << " structure-file selection out-template [ options ]\n";
-        std::cout << available_opts << std::endl;
+        show_help(argv[0], available_opts);
         return 0;
     }
     std::string structure_file;
@@ -59,10 +69,7 @@ int main(int argc, char *argv[]) {
         out_template = vm["out-template"].as<std::string>();
     } else {
         std::cerr << "Error: Missing arguments\n";
-        std::cerr << "Usage:\n";
-        std::cerr << "  " << argv[0]
-            << " structure-file selection out-template [ options ]\n";
-        std::cerr << available_opts;
+        show_help(argv[0], available_opts);
         return 1;
     }
     bool by_residue = vm.count("by-residue");

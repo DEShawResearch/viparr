@@ -3,21 +3,31 @@
 # source `dirname $0`/../share/env.sh
 # exec python $0 "$@"
 #}
-from __future__ import print_function
+
+"""
+Builds or rebuilds constraints for hydrogen groups in a chemical system. This is
+performed by default at the end of ``viparr`` execution. Each hydrogen group
+consists of a heavy atom and all hydrogens bonded to it. A heavy atom with `n`
+hydrogens will be constrained with a constraint of type `ahn`. In the case of
+water, the constraint type will be `hoh`.
+
+The constraint length parameters (and angle parameter, in the case of water)
+are obtained from the ``stretch_harm`` and ``angle_harm`` tables. Stretch and
+angle terms that are constrained by a constraint group are marked by setting the
+`constrained` field in the ``stretch_harm`` or ``angle_harm`` table to 1, unless
+the `-k` option is given. Constrained terms can safely be ignored by simulation
+programs as long as the constraints are evaluated.
+"""
 
 import viparr
 import msys
 import sys
 import os
 
-def warn_if_using_deprecated_script_name():
-    exe = os.path.basename(sys.argv[0])
-    if not exe.startswith('viparr'):
-        print("WARNING: this script name is deprecated; please use 'viparr-build-constraints'", file=sys.stderr)
-
 def parse_args():
-    from argparse import ArgumentParser
-    parser = ArgumentParser(description=__doc__)
+    from argparse import ArgumentParser, RawDescriptionHelpFormatter
+    parser = ArgumentParser(description=__doc__,
+                            formatter_class=RawDescriptionHelpFormatter)
     parser.add_argument("ifile",
             help="Input file")
     parser.add_argument("-o", "--output",
@@ -33,7 +43,6 @@ def parse_args():
     return parser.parse_args()
 
 def main():
-    warn_if_using_deprecated_script_name()
     args = parse_args()
     if args.verbose:
         print("Reading", args.ifile)

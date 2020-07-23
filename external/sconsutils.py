@@ -241,13 +241,18 @@ def _AddWheel(env, tomlfile, pyver='36'):
     for category, elems in _wheel_targets.items():
         if category == 'platlib':
             target_dir = env['WHEEL_PATH'].get_path()
+            extra_dir = '.'
+        elif category == 'data':
+            target_dir = env['WHEEL_PATH'].get_path()
+            extra_dir = env['PACKAGE_NAME_SAFE']
         else:
             target_dir = env['WHEEL_DATA_PATH'].Dir(category).get_path()
+            extra_dir = '.'
         for targets, prefix in elems:
             for tgts in targets:
                 for node in env.arg2nodes(tgts):
                     relpath = os.path.relpath(node.get_path(), prefix)
-                    args = (os.path.join(target_dir, relpath), node)
+                    args = (os.path.join(target_dir, extra_dir, relpath), node)
                     wheel_targets.append(env.InstallAs(*args))
 
     whl = env.Zip(

@@ -72,7 +72,7 @@ case $1 in
         $PREFIX/bin/viparr_neutralize -h > /dev/null
         $PREFIX/bin/viparr_solvate -h > /dev/null
         $PREFIX/bin/viparr-make-rigid -h > /dev/null
-        (cd doc && PYTHONPATH=$PREFIX/lib/python:$PYTHONPATH make clean html)
+        (cd doc && PATH=$PREFIX/bin:$PATH PYTHONPATH=$PREFIX/lib/python:$PYTHONPATH make clean html)
 
         mkdir -p $PREFIX/doc
         cp -r doc/build/* $PREFIX/doc
