@@ -1,4 +1,7 @@
 Release Notes:
+    4.7.20  New viparr-convert-psf script.
+            Fix viparr_solvate when center is not at the origin.
+
     4.7.19  viparr_neutralize: better handling of nbfix terms.
             Documentation improvements.
 
