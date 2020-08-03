@@ -4,7 +4,7 @@ build-backend = "enscons.api"
 
 [tool.enscons]
 name="viparr"
-version="4.7.18"
+version="4.7.20"
 packages=["viparr"]
 install_requires=["wheel"]
 description="Viparr - for forcefields"
