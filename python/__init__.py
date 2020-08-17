@@ -2925,7 +2925,12 @@ def ApplyLigandForcefields(system, ligands, selection='all',
                 # keep the re-ordered ligand
                 mapping[1] = ligand.clone(order)
                 for k,v in fields.items():
-                    mapping[1].ct(0)[k] = v
+                    try:
+                        mapping[1].ct(0)[k] = v
+                    except ValueError as e:
+                        if not v:
+                            continue
+                        raise ValueError(f"Unable to assign ct property {k} = '{v}'") from e
                 break
         else:
             raise RuntimeError("No graph match found for ligand with fragid %d that preserves the inchi %s" % (
