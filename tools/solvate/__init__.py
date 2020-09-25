@@ -1,5 +1,6 @@
 import os, msys, viparr
 import numpy
+from msys.wrap import Wrapper
 
 mydir = os.path.dirname(__file__)
 
@@ -114,10 +115,6 @@ def Solvate(mol, watbox=None, dims=None, center=None,
     else:
         center=[float(x) for x in center]
 
-    # Shift solute to the center so we don't miss overlapping waters
-    # DESRESCode#4602
-    mol.translate(center-mol.center)
-
     # update the cell
     mol.cell[0][:]=[dims[0],0,0]
     mol.cell[1][:]=[0,dims[1],0]
@@ -155,6 +152,9 @@ def Solvate(mol, watbox=None, dims=None, center=None,
 
     if verbose: print("removing overlaps")
 
+    # do periodic wrapping before finding overlaps, in case the solute is far from the origin
+    # DESRESCode#4602
+    Wrapper(mol).wrap()
     toonear='pbwithin %s of index < %s' % (solvent_radius, npro)
 
     # remove overlap with solute
