@@ -114,6 +114,10 @@ def Solvate(mol, watbox=None, dims=None, center=None,
     else:
         center=[float(x) for x in center]
 
+    # Shift solute to the center so we don't miss overlapping waters
+    # DESRESCode#4602
+    mol.translate(center-mol.center)
+
     # update the cell
     mol.cell[0][:]=[dims[0],0,0]
     mol.cell[1][:]=[0,dims[1],0]
