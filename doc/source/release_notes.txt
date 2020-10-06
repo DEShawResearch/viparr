@@ -1,4 +1,6 @@
 Release Notes:
+    4.7.22  viparr_solvate: wrap atoms using input box dimensions
+
     4.7.21  viparr_solvate: wrap atoms before finding overlap
             Ignore innocuous errors during ApplyLigandforcefields
 
