@@ -1,25 +1,23 @@
 #include "../base.hxx"
 #include "export_ff.hxx"
-#include <boost/filesystem.hpp>
 #include <msys/fastjson/fastjson.hxx>
 
 namespace dfj = desres::msys::fastjson;
-namespace bfs = boost::filesystem;
 
 namespace desres { namespace viparr {
 
     void ExportForcefield(ForcefieldPtr ff, const std::string& dir) {
-        bfs::create_directories(dir);
-        if (!bfs::is_empty(dir))
+        fs::create_directories(dir);
+        if (!fs::is_empty(dir))
             VIPARR_FAIL("Cannot export forcefield to nonempty directory "
                     + dir);
 
         /* Export rules */
-        bfs::path rules_path = bfs::path(dir) / "rules";
+        auto rules_path = dir + "/rules";
         try {
-            ExportRules(ff->rules(), rules_path.string());
+            ExportRules(ff->rules(), rules_path);
         } catch(std::exception& e) {
-            VIPARR_FAIL("Error writing " + rules_path.string()
+            VIPARR_FAIL("Error writing " + rules_path
                     + ": " + e.what());
         }
         for (msys::Id param : ff->rowIDs("vdw1")) {
@@ -38,21 +36,21 @@ namespace desres { namespace viparr {
         }
 
             /* TemplateTyper -- export templates */
-            bfs::path tpls_path = bfs::path(dir) / "templates";
+            auto tpls_path = dir + "/templates";
             try {
-                ExportTemplates(ff->typer()->templates(), tpls_path.string());
+                ExportTemplates(ff->typer()->templates(), tpls_path);
             } catch(std::exception& e) {
-                VIPARR_FAIL("Error writing " + tpls_path.string()
+                VIPARR_FAIL("Error writing " + tpls_path
                         + ": " + e.what());
             }
 
         /* Export cmaps */
         if (ff->cmapTables().size() > 0) {
-            bfs::path cmaps_path = bfs::path(dir) / "cmap";
+            auto cmaps_path = dir + "/cmap";
             try {
-                ExportCmap(ff->cmapTables(), cmaps_path.string());
+                ExportCmap(ff->cmapTables(), cmaps_path);
             } catch(std::exception& e) {
-                VIPARR_FAIL("Error writing " + cmaps_path.string()
+                VIPARR_FAIL("Error writing " + cmaps_path
                         + ": " + e.what());
             }
         }
@@ -62,12 +60,11 @@ namespace desres { namespace viparr {
         for (unsigned i = 0; i < tables.size(); ++i) {
             const std::list<msys::Id>& rows = ff->rowIDs(tables[i]);
             std::string name = tables[i];
-            bfs::path param_path = bfs::path(dir) / tables[i];
+            auto param_path = dir + "/" + tables[i];
             try {
-                ExportParams(Forcefield::ParamTable(name), rows,
-                        param_path.string());
+                ExportParams(Forcefield::ParamTable(name), rows, param_path);
             } catch(std::exception& e) {
-                VIPARR_FAIL("Error writing " + param_path.string()
+                VIPARR_FAIL("Error writing " + param_path
                         + ": " + e.what());
             }
         }

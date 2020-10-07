@@ -1,12 +1,10 @@
 #include "import_ff.hxx"
 #include <msys/fastjson/fastjson.hxx>
-#include <boost/filesystem.hpp>
 #include <sstream>
 #include <algorithm>
 #include <cctype>
 
 namespace dfj = desres::msys::fastjson;
-namespace bfs = boost::filesystem;
 
 using namespace desres;
 using namespace desres::viparr;
@@ -64,7 +62,7 @@ namespace desres { namespace viparr {
 
     RulesPtr ImportRules(const std::string& path) {
 
-        if (!bfs::exists(path))
+        if (!fs::exists(path))
             VIPARR_FAIL("File not found");
         dfj::Json js;
         try {

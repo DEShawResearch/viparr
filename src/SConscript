@@ -36,6 +36,7 @@ importexport/export_ff.cxx
 importexport/export_params.cxx
 importexport/export_rules.cxx
 importexport/export_templates.cxx
+importexport/fs.cxx
 importexport/import_cmap.cxx
 importexport/import_ff.cxx
 importexport/import_params.cxx
@@ -88,4 +89,3 @@ libviparr=libenv.AddLibrary('viparr', objs)
 
 Export('libviparr')
 
-SConscript('apps/SConscript')

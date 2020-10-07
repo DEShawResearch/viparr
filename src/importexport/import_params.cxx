@@ -1,19 +1,17 @@
 #include "import_ff.hxx"
 #include "../append_params.hxx"
 #include <msys/fastjson/parse.hxx>
-#include <boost/filesystem.hpp>
 #include <boost/tokenizer.hpp>
 #include <sstream>
 
 namespace dfj = desres::msys::fastjson;
-namespace bfs = boost::filesystem;
 using namespace desres;
 
 std::list<msys::Id> desres::viparr::ImportParams(const std::string& name,
         const std::string& path, const std::list<msys::Id>& share_params,
         const std::string& nbfix_identifier) {
 
-    if (!bfs::exists(path))
+    if (!fs::exists(path))
         VIPARR_FAIL("File not found");
     dfj::Json js;
     try {

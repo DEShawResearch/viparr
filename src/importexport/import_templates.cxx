@@ -1,10 +1,8 @@
 #include "import_ff.hxx"
 #include <msys/fastjson/parse.hxx>
-#include <boost/filesystem.hpp>
 #include <sstream>
 
 namespace dfj = desres::msys::fastjson;
-namespace bfs = boost::filesystem;
 
 using namespace desres;
 using namespace desres::viparr;
@@ -300,7 +298,7 @@ namespace desres { namespace viparr {
 
     std::vector<TemplatedSystemPtr> ImportTemplates(const std::string& path) {
 
-        if (!bfs::exists(path))
+        if (!fs::exists(path))
             VIPARR_FAIL("File not found");
         dfj::Json js;
         try {

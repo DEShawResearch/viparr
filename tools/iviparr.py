@@ -47,7 +47,7 @@ def main():
     ff = viparr.ImportForcefield(ff_path)
     viparr.Forcefield.ClearParamTables()
 
-    ff_out = viparr._viparr.ExecuteIviparr(mol._ptr, ids, ff._Forcefield.rules(), args.templateonly)
+    ff_out = viparr._viparr.ExecuteIviparr(mol.asCapsule(), ids, ff._Forcefield.rules(), args.templateonly)
 
     # store provenance in info section of rules file
     prov = msys._msys.Provenance.fromArgs(sys.argv)

@@ -118,7 +118,7 @@ class Forcefield(object):
 
         Returns: :class:`msys.ParamTable`
         """
-        return msys.ParamTable(_viparr.Forcefield.ParamTable(name))
+        return msys.ParamTable.fromCapsule(_viparr.Forcefield.ParamTable(name))
 
     @staticmethod
     def AddParamTable(name, table):
@@ -130,7 +130,7 @@ class Forcefield(object):
             table -- :class:`msys.ParamTable`
 
         """
-        _viparr.Forcefield.AddParamTable(name, table._ptr)
+        _viparr.Forcefield.AddParamTable(name, table.asCapsule())
 
     @staticmethod
     def AllParamTables():
@@ -212,7 +212,7 @@ class Forcefield(object):
             self._Plugin.match(tsystem._TemplatedSystem, ff._Forcefield)
 
         def compile(self, system):
-            self._Plugin.compile(system._ptr)
+            self._Plugin.compile(system.asCapsule())
 
     @classmethod
     def GetPluginRegistry(cls):
@@ -420,7 +420,7 @@ class Forcefield(object):
         elif type(params) == msys.Param:
             params = [params]
         for p in params:
-            if p._ptr != Forcefield.ParamTable(name)._ptr:
+            if p._Ptr != Forcefield.ParamTable(name)._ptr:
                 raise RuntimeError("Parameter " + p.__repr__() + \
                         " does not belong to this table")
         self._Forcefield.delParams(name, [p.id for p in params])
@@ -458,11 +458,11 @@ class Forcefield(object):
     def cmap_tables(self):
         """All contained cmap parameter tables."""
         tables = self._Forcefield.cmapTables()
-        return [msys.ParamTable(table) for table in tables]
+        return [msys.ParamTable.fromCapsule(table) for table in tables]
 
     def addCmapTable(self, table):
         """Add a new cmap parameter table."""
-        self._Forcefield.addCmapTable(table._ptr)
+        self._Forcefield.addCmapTable(table.asCapsule())
 
     def __str__(self):
         output = 'Name: ' + self.name + '\n\n'
@@ -537,7 +537,7 @@ class TemplatedSystem(object):
 
         """
         if system:
-            self._TemplatedSystem = _viparr.TemplatedSystem(system._ptr)
+            self._TemplatedSystem = _viparr.TemplatedSystem(system.asCapsule())
         else:
             self._TemplatedSystem = _viparr.TemplatedSystem()
     
@@ -556,7 +556,7 @@ class TemplatedSystem(object):
     @property
     def system(self):
         """The contained :class:`msys.System` object."""
-        return msys.System(self._TemplatedSystem.system())
+        return msys.System.fromCapsule(self._TemplatedSystem.system())
 
     def clone(self, seltext=None):
         """Copy the viparr.TemplatedSystem, returning the copy.
@@ -1544,7 +1544,7 @@ def ImportCmap(path):
 
     Returns: msys.ParamTable
     """
-    return [msys.ParamTable(table) for table in _viparr.ImportCmap(path)]
+    return [msys.ParamTable.fromCapsule(table) for table in _viparr.ImportCmap(path)]
 
 def ImportParams(table_name, path, nbfix_identifier=''):
     """Import a parameter file.
@@ -1632,7 +1632,7 @@ def ExportCmap(cmap_tables, path):
         path -- str
 
     """
-    _viparr.ExportCmap([table._ptr for table in cmap_tables], path)
+    _viparr.ExportCmap([table.asCapsule() for table in cmap_tables], path)
 
 def ExportParams(params, path):
     """Export a subset of parameters in a parameter table to a file.
@@ -1648,7 +1648,7 @@ def ExportParams(params, path):
     """
     if len(params) == 0:
         return
-    table = params[0]._ptr
+    table = params[0].asCapsule()
     _viparr.ExportParams(table, [param.id for param in params], path)
 
 def MergeForcefields(src, patch, append_only=False, verbose=True):
@@ -1733,7 +1733,7 @@ def MergeParams(src_params, patch_params, append_only=False, verbose=True):
     if len(patch_params) == 0:
         return src_params
     ids = _viparr.MergeParams([p.id for p in src_params],
-            [p.id for p in patch_params], patch_params[0].table._ptr,
+            [p.id for p in patch_params], patch_params[0].table.asCapsule(),
             append_only, verbose)
     return [patch_params[0].table.param(id) for id in ids]
 
@@ -2184,9 +2184,9 @@ class ParameterMatcher(object):
                 self.__class__._perm_map[permutation] = perm
                 perms.append(perm)
         if len(params) == 0:
-            table = msys.CreateParamTable()._ptr
+            table = msys.CreateParamTable().asCapsule()
         else:
-            table = params[0]._ptr
+            table = params[0].asCapsule()
         self._ParameterMatcher = _viparr.ParameterMatcher(table,
                 [param.id for param in params], stp, ttp, perms)
 
@@ -2327,7 +2327,7 @@ class ParameterMatcher(object):
 
         """
         self._ParameterMatcher.writeMultiple(param.id,
-                [atom.id for atom in atoms], term_table._ptr)
+                [atom.id for atom in atoms], term_table.asCapsule())
 
     @property
     def params(self):
@@ -2380,7 +2380,7 @@ def AddSystemTables(system, table_name_mapping=None):
         :func:`Forcefield.AllParamTables()`
 
     """
-    _viparr.AddSystemTables(system._ptr, {}, table_name_mapping)
+    _viparr.AddSystemTables(system.asCapsule(), {}, table_name_mapping)
 
 def ExecuteViparr(system, ffs, atoms=None, rename_atoms=False,
         rename_residues=False, with_constraints=True, fix_masses=True,
@@ -2434,9 +2434,10 @@ def ExecuteViparr(system, ffs, atoms=None, rename_atoms=False,
     """
     if atoms is None:
         atoms = system.atoms
-    _viparr.ExecuteViparr(system._ptr, [ff._Forcefield for ff in ffs],
+    optimize_vsite_defs = True
+    _viparr.ExecuteViparr(system.asCapsule(), [ff._Forcefield for ff in ffs],
             [atom.id for atom in atoms], rename_atoms, rename_residues,
-            with_constraints, fix_masses, fatal, compile_plugins, verbose, verbose_matching)
+            with_constraints, optimize_vsite_defs, fix_masses, fatal, compile_plugins, verbose, verbose_matching)
 
 class CompilePlugins(object):
     """A collection of plugin compilation functions and helper functions.
@@ -2466,7 +2467,7 @@ class CompilePlugins(object):
         if plugins is None:
             plugins = default_list
                     
-        _viparr.CompilePlugins(system._ptr, plugins)
+        _viparr.CompilePlugins(system.asCapsule(), plugins)
 
     @staticmethod
     def CompileMasses(system):
@@ -2476,7 +2477,7 @@ class CompilePlugins(object):
             system -- :class:`msys.System`
 
         """
-        #_viparr.CompileMasses(system._ptr)
+        #_viparr.CompileMasses(system.asCapsule())
         Forcefield.GetPluginRegistry()["mass"].compile(system)
 
     @staticmethod
@@ -2506,7 +2507,7 @@ class CompilePlugins(object):
         Arguments:
             system -- :class:`msys.System`
         """
-        _viparr.ApplyNBFix(system._ptr)
+        _viparr.ApplyNBFix(system.asCapsule())
 
     @staticmethod
     def AddPairsTable(system):
@@ -2517,7 +2518,7 @@ class CompilePlugins(object):
 
         Returns: :class:`msys.TermTable`
         """
-        return msys.TermTable(_viparr.AddPairsTable(system._ptr))
+        return msys.TermTable.fromCapsule(_viparr.AddPairsTable(system.asCapsule()))
 
     @staticmethod
     def CompilePairsESScaled(system, pairs):
@@ -2565,7 +2566,7 @@ class CompilePlugins(object):
             system -- :class:`msys.System`
 
         """
-        _viparr.CleanupSystem(system._ptr)
+        _viparr.CleanupSystem(system.asCapsule())
 
 def BuildConstraints(system, atoms=None, keep=False, exclude=[], verbose=True):
     """Add constraints to the system.
@@ -2597,8 +2598,9 @@ def BuildConstraints(system, atoms=None, keep=False, exclude=[], verbose=True):
     """
     if atoms is None:
         atoms = system.atoms
-    _viparr.BuildConstraints(system._ptr, [atom.id for atom in atoms], keep,
-            exclude, verbose)
+    optimize_vsite_defs = True
+    _viparr.BuildConstraints(system.asCapsule(), [atom.id for atom in atoms], keep,
+            set(exclude), optimize_vsite_defs, verbose)
 
 def FixMasses(system, atoms=None, verbose=True):
     """Equate masses for all atoms of the same element.
@@ -2620,7 +2622,7 @@ def FixMasses(system, atoms=None, verbose=True):
     """
     if atoms is None:
         atoms = system.atoms
-    _viparr.FixMasses(system._ptr, [atom.id for atom in atoms], verbose)
+    _viparr.FixMasses(system.asCapsule(), [atom.id for atom in atoms], verbose)
 
 def RotateToMinAABB(system, cubic=True):
     """Find and apply the rigid rotation to the system that minimizes the
@@ -2636,7 +2638,7 @@ def RotateToMinAABB(system, cubic=True):
         cubic  -- bool
 
     """
-    _viparr.RotateToMinAABB(system._ptr, cubic)
+    _viparr.RotateToMinAABB(system.asCapsule(), cubic)
 
 def ReorderIDs(system):
     """Reorder atom IDs in a parametrized system based on bond connectivity.
@@ -2650,7 +2652,7 @@ def ReorderIDs(system):
 
     Returns: :class:`msys.System`
     """
-    return msys.System(_viparr.ReorderIDs(system._ptr))
+    return msys.System.fromCapsule(_viparr.ReorderIDs(system.asCapsule()))
 
 def GenerateStandardPlugin(name, tuple_type, required=True, match_pseudos=False,
         permutations=[Permutation.Identity, Permutation.Reverse]):
@@ -2770,14 +2772,14 @@ def GetBondsAnglesDihedrals(system):
     ''' Return bonds, angles and dihedrals deduced from bond topology
     Returns: dict
     '''
-    return _viparr.GetBondsAnglesDihedrals(system._ptr)
+    return _viparr.GetBondsAnglesDihedrals(system.asCapsule())
 
 def SystemToDot(system, residue_id = msys.BadId):
     ''' Return dot file representation of system
     
     If residue_id is not None, draw atoms not in that residue as external.
     '''
-    return _viparr.SystemToDot(system._ptr, residue_id)
+    return _viparr.SystemToDot(system.asCapsule(), residue_id)
 
 def ApplyLigandForcefields(system, ligands, selection='all',
                            rename_atoms=False, rename_residues=False,

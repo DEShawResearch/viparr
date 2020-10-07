@@ -2,7 +2,7 @@
 #define desres_viparr_export_ff_hxx
 
 #include "../ff.hxx"
-#include <string>
+#include "fs.hxx"
 
 namespace desres { namespace viparr {
 

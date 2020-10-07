@@ -1,14 +1,12 @@
 #include "export_ff.hxx"
 #include <msys/fastjson/fastjson.hxx>
-#include <boost/filesystem.hpp>
 
 namespace dfj = desres::msys::fastjson;
-namespace bfs = boost::filesystem;
 
 namespace desres { namespace viparr {
 
     void ExportRules(RulesPtr rules, const std::string& path) {
-        if (bfs::exists(path))
+        if (fs::exists(path))
             VIPARR_FAIL("File already exists; cannot overwrite");
         dfj::Json jinfo;
         jinfo.to_array();

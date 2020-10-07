@@ -1,20 +1,18 @@
 #include "../base.hxx"
 #include "export_ff.hxx"
 #include <msys/fastjson/fastjson.hxx>
-#include <boost/filesystem.hpp>
 #include <iostream>
 #include <fstream>
 #include <sstream>
 
 namespace dfj = desres::msys::fastjson;
-namespace bfs = boost::filesystem;
 
 namespace desres { namespace viparr {
 
     void ExportParams(msys::ParamTablePtr table, const std::list<msys::Id>&
             rows, const std::string& path) {
 
-        if (bfs::exists(path))
+        if (fs::exists(path))
             VIPARR_FAIL("File already exists; cannot overwrite");
         msys::Id typeCol=table->propIndex("type");
         if (msys::bad(typeCol))

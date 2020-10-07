@@ -1,12 +1,10 @@
 #include "export_ff.hxx"
 #include <msys/fastjson/fastjson.hxx>
-#include <boost/filesystem.hpp>
 #include <iostream>
 #include <fstream>
 #include <msys/elements.hxx>
 
 namespace dfj = desres::msys::fastjson;
-namespace bfs = boost::filesystem;
 
 using namespace desres;
 using namespace desres::viparr;
@@ -191,7 +189,7 @@ namespace desres { namespace viparr {
 
     void ExportTemplates(const std::vector<TemplatedSystemPtr>& tpls,
             const std::string& path) {
-        if (bfs::exists(path))
+        if (fs::exists(path))
             VIPARR_FAIL("File already exists; cannot overwrite");
         std::ofstream out(path.c_str());
         out << "{\n";

@@ -1,33 +1,8 @@
 Import('env')
-Import('libviparr')
 
-env=env.Clone()
-opts=Variables()
-opts.Add("MSYS_BOOST_PYTHON_SUFFIX", "suffix for boost libraries (e.g. -py)")
-opts.Update(env)
+env.Append(CPPPATH=['../src'], LIBS=['viparr'], CXXFLAGS=["-fvisibility=hidden"])
+if True:
+    env.Append(CXXFLAGS=["-flto"], LINKFAGS=["-flto"])
 
-env.Append( 
-        CPPPATH=['../src'],
-        LIBS=['viparr'],
-        PYTHON27_LIBS=['boost_python${MSYS_BOOST_PYTHON_SUFFIX}27'],
-        PYTHON35_LIBS=['boost_python${MSYS_BOOST_PYTHON_SUFFIX}35'],
-        PYTHON36_LIBS=['boost_python${MSYS_BOOST_PYTHON_SUFFIX}36'],
-        PYTHON37_LIBS=['boost_python${MSYS_BOOST_PYTHON_SUFFIX}37'],
-        )
-
-pymodfiles='''
-compile_plugins.cxx
-export_ff.cxx
-forcefield.cxx
-import_ff.cxx
-merge_ff.cxx
-parameter_matcher.cxx
-pattern.cxx
-pymod.cxx
-rules.cxx
-templated_system.cxx
-typers.cxx
-'''.split()
-
-pyext=env.AddPythonExtension('_viparr', pymodfiles, prefix='viparr')
+env.AddPythonExtension('_viparr', "viparr.cxx", prefix='viparr')
 env.AddPythonModule('__init__.py', prefix='viparr')

@@ -1,28 +1,26 @@
 #include "import_ff.hxx"
 #include <msys/fastjson/parse.hxx>
-#include <boost/filesystem.hpp>
 
 namespace dfj = desres::msys::fastjson;
-namespace bfs = boost::filesystem;
 
 namespace desres { namespace viparr {
 
     ForcefieldPtr ImportForcefield(const std::string& dir, bool require_rules,
             const std::map<std::string, std::list<msys::Id> >& share_params) {
 
-        if (!bfs::exists(dir))
+        if (!fs::exists(dir))
             VIPARR_FAIL("Forcefield directory not found");
-        if (!bfs::is_directory(dir))
+        if (!fs::is_directory(dir))
             VIPARR_FAIL("Forcefield directory path is not a directory");
 
         /* Import rules */
-        bfs::path rules_path = bfs::path(dir) / "rules";
+        auto rules_path = dir + "/rules";
         RulesPtr rules;
-        if (bfs::exists(rules_path)) {
+        if (fs::exists(rules_path)) {
             try {
-                rules = ImportRules(rules_path.string());
+                rules = ImportRules(rules_path);
             } catch (std::exception& e) {
-                VIPARR_FAIL("Error loading " + rules_path.string() + ": "
+                VIPARR_FAIL("Error loading " + rules_path + ": "
                         + e.what());
             }
         } else if (require_rules)
@@ -39,15 +37,13 @@ namespace desres { namespace viparr {
         ForcefieldPtr ff = Forcefield::create(rules, typer);
 
         /* Process template, param, and cmap files */
-        bfs::directory_iterator iter(dir), end;
-        for (; iter != end; ++iter) {
-            std::string path = iter->path().string();
-            std::string name = iter->path().filename().string();
+        for (auto& name : fs::iter_directory(dir)) {
+            auto path = dir + "/" + name;
 
             /* Ignore temp files, subdirectories, README, rules, .def files */
             if (name.substr(name.size()-1) == "~") continue;
             if (name.substr(0,1) == ".") continue;
-            if (bfs::is_directory(path)) continue;
+            if (fs::is_directory(path)) continue;
             if (name == "README") continue;
             if (name == "rules") continue;
             if (name.size() >= 4)

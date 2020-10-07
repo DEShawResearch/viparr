@@ -26,18 +26,6 @@ viparr-build-constraints
 .. program-output:: viparr-build-constraints --help
 
 
-construct_template
-==================
-
-.. program-output:: construct_template --help
-
-
-dms_from_template
-=================
-
-.. program-output:: dms_from_template --help
-
-
 viparr-draw-template
 ====================
 

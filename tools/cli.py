@@ -173,8 +173,10 @@ def run_viparr(args):
         print("No atoms to parameterize using forcefields")
     else:
         compile_plugins = True  # ??
-        viparr._viparr.ExecuteViparr(mol._ptr, ffs, ids,
+        optimize_vsite_defs = True
+        viparr._viparr.ExecuteViparr(mol.asCapsule(), ffs, ids,
                 args.rename_atoms, args.rename_residues, args.with_constraints,
+                optimize_vsite_defs,
                 args.fix_masses, not args.non_fatal,
                 compile_plugins, args.verbose_plugins, args.verbose_matching)
 

@@ -13,9 +13,8 @@ if True:
     env.Append(CFLAGS=flg, CXXFLAGS=flg)
 
 env.Append(
-    CPPDEFINES=['BOOST_FILESYSTEM_VERSION=3', 'BOOST_SYSTEM_NO_DEPRECATED'],
-    CCFLAGS=['-O2', '-Wall', '-g', '-std=c++11', '-Wno-unused-local-typedefs'],
-    LIBS=['boost_filesystem', 'boost_system', 'boost_program_options', 'msys', 'msys-core'],
+    CCFLAGS=['-O2', '-Wall', '-g', '-std=c++14'],
+    LIBS=['msys', 'msys-core'],
     )
 
 for d in 'src', 'python', 'tools':
