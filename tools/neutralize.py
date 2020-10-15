@@ -11,7 +11,6 @@ the solute (possibly required to achieve a desired ionic concentration).
 import os, msys, viparr, math
 from collections import namedtuple
 import random
-import subprocess
 import tempfile
 
 IONPROPS = {
@@ -39,7 +38,7 @@ def generate_pdff_templates(ffpath, cation_name, anion_name):
     ifile = tempfile.NamedTemporaryFile(suffix=".dms")
     ofile = tempfile.NamedTemporaryFile(suffix=".dms")
     mol.save(ifile.name)
-    subprocess.run(["thermika-ff-type-dms", "-f", ffpath, "--round-q", "0", ifile.name, "-o", ofile.name], check=True)
+    viparr.ExecuteFFDETypify(ifile.name, ofile.name, ffpath)
     ffmol = msys.Load(ofile.name)
     cationsys = ffmol.clone("same fragment as name " + cation_name)
     anionsys = ffmol.clone("same fragment as name " + anion_name)

@@ -2382,6 +2382,19 @@ def AddSystemTables(system, table_name_mapping=None):
     """
     _viparr.AddSystemTables(system.asCapsule(), {}, table_name_mapping)
 
+def ExecuteFFDETypify(ifile, ofile, ffde):
+    """Use ff-type-dms to parameterize system
+
+    Arguments:
+        ifile (str): path to input structure
+        ofile (str): path to output dms
+        ffde (str): path to FFDE forcefield file
+    """
+    import subprocess
+    cmd = ["thermika-ff-type-dms", "-f", ffde, "--round-q", "0", ifile, "-o", ofile]
+    subprocess.run(cmd, check=True)
+
+    
 def ExecuteViparr(system, ffs, atoms=None, rename_atoms=False,
         rename_residues=False, with_constraints=True, fix_masses=True,
         fatal=True, compile_plugins=True, verbose=True, verbose_matching=True):

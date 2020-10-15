@@ -130,6 +130,8 @@ def parser():
                         help="merge forcefield patch; may overwrite existing forcefield components")
     parser.add_argument("--append", "-a", dest='fflist', action=FFAppendAction,
                         help="merge forcefield patch; only append to existing forcefield components")
+    parser.add_argument("--ffde",
+                        help="path to FFDE forcefield")
     parser.add_argument('--ligand-files', nargs='*',
                         help="one or more parameterized ligand dms files")
     parser.add_argument('--ligand-selection', default='none',
@@ -164,6 +166,13 @@ def run_viparr(args):
     if args.ligand_files and args.ligand_selection=='none':
         raise RuntimeError("Missing --ligand-selection")
     print("Importing structure from %s" % args.input)
+    if args.ffde:
+        if args.fflist:
+            raise RuntimeError("Cannot specify both ffpath and other forcefield options")
+        print("Exporting parametrized system to %s" % args.output)
+        viparr.ExecuteFFDETypify(args.input, args.output, args.ffde)
+        return
+
     mol = msys.Load(args.input, structure_only=structure_only)
     ffs = [ff._Forcefield for ff in args.fflist]
     ids = mol.selectIds('(%s) and not (%s)' % (args.selection, args.ligand_selection))
