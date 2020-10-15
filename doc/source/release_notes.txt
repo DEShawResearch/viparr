@@ -1,5 +1,8 @@
 Release Notes:
-    4.7.23  Support pdff forcefields with --ffdir.
+    4.7.24  Add --ffde option to viparr.
+            Get rid of optimize_vsite_defs.
+
+    4.7.23  viparr_solvate: Support pdff forcefields with --ffdir.
 
     4.7.22  viparr_solvate: wrap atoms using input box dimensions
 
