@@ -15,8 +15,7 @@ namespace desres { namespace viparr {
             const std::vector<ForcefieldPtr>& ffs,
             const msys::IdList& atoms, bool rename_atoms=false,
             bool rename_residues=false, bool with_constraints=true,
-            bool optimize_vsite_defs=true, bool fix_masses=true,
-            bool fatal=true,
+            bool fix_masses=true, bool fatal=true,
             bool compile_plugins=true, bool verbose=true,
             bool verbose_matching=false);
 

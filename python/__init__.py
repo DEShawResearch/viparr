@@ -2447,10 +2447,9 @@ def ExecuteViparr(system, ffs, atoms=None, rename_atoms=False,
     """
     if atoms is None:
         atoms = system.atoms
-    optimize_vsite_defs = True
     _viparr.ExecuteViparr(system.asCapsule(), [ff._Forcefield for ff in ffs],
             [atom.id for atom in atoms], rename_atoms, rename_residues,
-            with_constraints, optimize_vsite_defs, fix_masses, fatal, compile_plugins, verbose, verbose_matching)
+            with_constraints, fix_masses, fatal, compile_plugins, verbose, verbose_matching)
 
 class CompilePlugins(object):
     """A collection of plugin compilation functions and helper functions.
@@ -2611,9 +2610,8 @@ def BuildConstraints(system, atoms=None, keep=False, exclude=[], verbose=True):
     """
     if atoms is None:
         atoms = system.atoms
-    optimize_vsite_defs = True
     _viparr.BuildConstraints(system.asCapsule(), [atom.id for atom in atoms], keep,
-            set(exclude), optimize_vsite_defs, verbose)
+            set(exclude), verbose)
 
 def FixMasses(system, atoms=None, verbose=True):
     """Equate masses for all atoms of the same element.

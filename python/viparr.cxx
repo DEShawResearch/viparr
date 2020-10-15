@@ -9,7 +9,6 @@
 #include "../src/importexport/export_ff.hxx"
 #include "../src/pattern.hxx"
 #include "../src/postprocess/build_constraints.hxx"
-#include "../src/postprocess/optimize_vsitedefs.hxx"
 #include "../src/postprocess/fix_masses.hxx"
 #include "../src/execute_viparr.hxx"
 #include "../src/execute_iviparr.hxx"
@@ -179,7 +178,6 @@ PYBIND11_MODULE(_viparr, m) {
     m.add_object("hexversion", int_(VIPARR_VERSION_HEX));
     m.add_object("msys_version", str(MSYS_VERSION));
     m.def("BuildConstraints", BuildConstraints);
-    m.def("OptimizeVsiteDefs", OptimizeVsiteDefs);
     m.def("AddSystemTables", AddSystemTables);
     m.def("ExecuteViparr", ExecuteViparr);
     m.def("ExecuteIviparr", ExecuteIviparr);

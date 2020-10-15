@@ -26,8 +26,7 @@ namespace desres { namespace viparr {
     void ExecuteViparr(const msys::SystemPtr sys,
                        const std::vector<ForcefieldPtr>& fflist,
                        const msys::IdList& atoms, bool rename_atoms, bool rename_residues,
-                       bool with_constraints, bool optimize_vsite_defs,
-                       bool fix_masses, bool fatal,
+                       bool with_constraints, bool fix_masses, bool fatal,
                        bool compile_plugins, bool verbose, bool verbose_matching) {
 
       if (atoms.size() == 0)
@@ -347,8 +346,7 @@ namespace desres { namespace viparr {
       if (with_constraints) {
         if (verbose)
           VIPARR_OUT << "Building constraints" << std::endl;
-        BuildConstraints(sys, atoms, false, std::set<std::string>(),
-                         optimize_vsite_defs, verbose);
+        BuildConstraints(sys, atoms, false, std::set<std::string>(), verbose);
       }
 
       if (fix_masses) {

@@ -16,8 +16,7 @@ namespace desres { namespace viparr {
      * etc. */
     void BuildConstraints(msys::SystemPtr sys, const msys::IdList& atoms,
             bool keep=false, const std::set<std::string>& 
-            exclude=std::set<std::string>(), bool optimize_vsite_defs=true,
-            bool verbose=true);
+            exclude=std::set<std::string>(), bool verbose=true);
 
 }}
 

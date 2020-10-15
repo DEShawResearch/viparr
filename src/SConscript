@@ -66,7 +66,6 @@ postprocess/apply_nbfix.cxx
 postprocess/build_constraints.cxx
 postprocess/compile_plugins.cxx
 postprocess/fix_masses.cxx
-postprocess/optimize_vsitedefs.cxx
 
 util/get_bonds_angles_dihedrals.cxx
 util/system_to_dot.cxx

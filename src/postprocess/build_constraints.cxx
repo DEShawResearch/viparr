@@ -1,5 +1,4 @@
 #include "build_constraints.hxx"
-#include "optimize_vsitedefs.hxx"
 #include "../add_system_tables.hxx"
 #include "../base.hxx"
 #include "../ff.hxx"
@@ -250,8 +249,7 @@ namespace {
 namespace desres { namespace viparr {
 
     void BuildConstraints(SystemPtr sys, const IdList& atoms,
-            bool keep, const std::set<std::string>& exclude, 
-            bool optimize_vsite_defs, bool verbose) {
+            bool keep, const std::set<std::string>& exclude, bool verbose) {
 
         AddSystemTables(sys);
 
@@ -397,11 +395,5 @@ namespace desres { namespace viparr {
                 }
             }
         }
-       
-        /* We have added constraints.
-         * See if we can use more efficient virtual site routines 
-         */
-        if (optimize_vsite_defs)
-            OptimizeVsiteDefs(sys, verbose);
     }
 }}
