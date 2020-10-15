@@ -11,6 +11,8 @@ the solute (possibly required to achieve a desired ionic concentration).
 import os, msys, viparr, math
 from collections import namedtuple
 import random
+import subprocess
+import tempfile
 
 IONPROPS = {
         # FIXME: we should get the list of recognized ion species
@@ -27,6 +29,24 @@ IONPROPS = {
         'CA' :  (20,2),
         'Ca2+': (20,2),
         }
+
+def generate_pdff_templates(ffpath, cation_name, anion_name):
+    mol = msys.CreateSystem()
+    mol.addAtom().atomic_number = IONPROPS[cation_name][0]
+    mol.addAtom().atomic_number = IONPROPS[anion_name][0]
+    mol.atom(0).name = cation_name
+    mol.atom(1).name = anion_name
+    ifile = tempfile.NamedTemporaryFile(suffix=".dms")
+    ofile = tempfile.NamedTemporaryFile(suffix=".dms")
+    mol.save(ifile.name)
+    subprocess.run(["thermika-ff-type-dms", "-f", ffpath, "--round-q", "0", ifile.name, "-o", ofile.name], check=True)
+    ffmol = msys.Load(ofile.name)
+    cationsys = ffmol.clone("same fragment as name " + cation_name)
+    anionsys = ffmol.clone("same fragment as name " + anion_name)
+    print("%d particles in cation system" % cationsys.natoms)
+    print("%d particles in anion system" % anionsys.natoms)
+    return cationsys, anionsys
+
 
 def parse_ff(ffname, ffdir, ff):
     if ffdir != '' or ffname != '' or ff:
@@ -134,9 +154,15 @@ def Neutralize(mol, cation='NA', anion='CL',
     # first, we add sufficient counterions to neutralize.  Then we add 
     # counterions and counter-counterions until counter-counterions are
     # up to the desired concentration.  
-    ff = parse_ff(ffname, ffdir, ff)
-    cationsys = parse_ion(cation, ff, verbose)
-    anionsys = parse_ion(anion, ff, verbose)
+    if os.path.isfile(ffdir):
+        # pdff.  parameterize ions to generate ionsys and cationsys
+        cationsys, anionsys = generate_pdff_templates(ffdir, cation, anion)
+    else:
+        # viparr forcefield.
+        ff = parse_ff(ffname, ffdir, ff)
+        cationsys = parse_ion(cation, ff, verbose)
+        anionsys = parse_ion(anion, ff, verbose)
+
     cationatom = cationsys.atoms[0]
     anionatom = anionsys.atoms[0]
 
@@ -157,7 +183,9 @@ def Neutralize(mol, cation='NA', anion='CL',
         ionatom = cationatom
         otheratom = anionatom
 
-    nions = int(math.fabs(cg/ionatom.charge)+0.5)
+    ioncharge = sum(a.charge for a in ionsys.atoms)
+    othercharge = sum(a.charge for a in othersys.atoms)
+    nions = int(math.fabs(cg/ioncharge)+0.5)
 
     # find the water residues
     water = mol.select('water and (not hydrogen) and (not within %f of (not water)) and (not (%s))'
@@ -183,7 +211,7 @@ def Neutralize(mol, cation='NA', anion='CL',
     ntotalwat = len(set(a.residue for a in mol.select('water')))
     if verbose:
         print("Starting with %d water molecules" % ntotalwat)
-    cgratio = math.fabs(otheratom.charge/ionatom.charge)
+    cgratio = math.fabs(othercharge/ioncharge)
     nother = int((concentration/55.345) * (ntotalwat-nions+nions_prev))
     nions += int(nother*cgratio)
 
@@ -192,13 +220,13 @@ def Neutralize(mol, cation='NA', anion='CL',
     nother -= nother_prev
 
     qtot = sum(a.charge for a in mol.atoms)
-    qnew = qtot + nother*otheratom.charge + nions*ionatom.charge
+    qnew = qtot + nother*othercharge + nions*ioncharge
     if abs(qnew) > 0.001:
         # this can happen if cgratio > 1.
-        if abs(ionatom.charge) < abs(otheratom.charge):
-            nions -= round(qnew / ionatom.charge)
+        if abs(ioncharge) < abs(othercharge):
+            nions -= round(qnew / ioncharge)
         else:
-            nother -= round(qnew/otheratom.charge)
+            nother -= round(qnew/othercharge)
 
     if nions >= 0 and verbose:
         print("New system should contain %d %s ions" % (nions, ionatom.name))
