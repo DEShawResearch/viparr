@@ -5,6 +5,7 @@
 #include "version.hxx"
 #include "../src/add_system_tables.hxx"
 #include "../src/ff.hxx"
+#include "../src/merge_ff.hxx"
 #include "../src/importexport/import_ff.hxx"
 #include "../src/importexport/export_ff.hxx"
 #include "../src/pattern.hxx"
@@ -161,6 +162,7 @@ PYBIND11_MODULE(_viparr, m) {
     m.def("FixMasses", FixMasses);
     m.def("ReorderIDs", ReorderIDs);
     m.def("ImportForcefield", ImportForcefield);
+    m.def("MergeForcefields", MergeForcefields);
     m.def("ImportRules", ImportRules);
     m.def("ImportTemplates", ImportTemplates);
     m.def("ImportCmap", ImportCmap);

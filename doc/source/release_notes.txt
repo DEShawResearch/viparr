@@ -1,4 +1,6 @@
 Release Notes:
+    4.7.26  Add missing bindings for MergeForcefields.
+
     4.7.25  Convert to pybind11.
 
     4.7.24  Add --ffde option to viparr.
