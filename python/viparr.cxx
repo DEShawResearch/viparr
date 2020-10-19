@@ -15,33 +15,10 @@
 #include "../src/util/get_bonds_angles_dihedrals.hxx"
 #include "../src/util/system_to_dot.hxx"
 #include <msys/version.hxx>
-#include <msys/python/capsule.hxx>
 
 using namespace pybind11;
 using namespace desres::msys;
-using namespace desres::msys::python;
 using namespace desres::viparr;
-
-namespace pybind11 { namespace detail {
-    template <> struct type_caster<SystemPtr> {
-    public:
-        PYBIND11_TYPE_CASTER(SystemPtr, _("SystemPtr"));
-        bool load(handle src, bool) { value = system_from_capsule(src.ptr()); return bool(value); }
-        static handle cast(SystemPtr src, return_value_policy, handle) { return system_as_capsule(src); }
-    };
-    template <> struct type_caster<TermTablePtr> {
-    public:
-        PYBIND11_TYPE_CASTER(TermTablePtr, _("TermTablePtr"));
-        bool load(handle src, bool) { value = termtable_from_capsule(src.ptr()); return bool(value); }
-        static handle cast(TermTablePtr src, return_value_policy, handle) { return termtable_as_capsule(src); }
-    };
-    template <> struct type_caster<ParamTablePtr> {
-    public:
-        PYBIND11_TYPE_CASTER(ParamTablePtr, _("ParamTablePtr"));
-        bool load(handle src, bool) { value = paramtable_from_capsule(src.ptr()); return bool(value); }
-        static handle cast(ParamTablePtr src, return_value_policy, handle) { return paramtable_as_capsule(src); }
-    };
-}}
 
 namespace {
     template <class Obj> bool eq(const Obj& self, const Obj& other) { return self==other; }
