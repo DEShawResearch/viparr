@@ -294,6 +294,7 @@ def Neutralize(mol, cation='NA', anion='CL',
     def handle_multiple_waters(residue):
         raise RuntimeError("Some residues (%d) contain multiple waters. Use dms-fix-water-residues." % residue.id)
 
+    added = []
     if nions > 0:
         for i in range(nions):
             res=residues[i]
@@ -305,6 +306,7 @@ def Neutralize(mol, cation='NA', anion='CL',
             newion.residue.resid=i+1
             residues_removed.add(res.id)
             res.remove()
+            added.append(newion)
 
     if nother > 0:
         for i in range(nions, nions+nother):
@@ -317,8 +319,11 @@ def Neutralize(mol, cation='NA', anion='CL',
             newion.residue.resid=i+1-nions
             residues_removed.add(res.id)
             res.remove()
+            added.append(newion)
 
     assert not (residues_removed & keep_residues)
+
+    msys.AssignBondOrderAndFormalCharge(added)
 
     if ff and ff.rules.nbfix_identifier:
         if verbose:
