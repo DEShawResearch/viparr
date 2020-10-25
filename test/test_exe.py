@@ -20,6 +20,7 @@ def test_compare_forcefields(tmpdir):
 
 def test_convert_amber(tmpdir):
     subprocess.run(f"viparr-convert-amber -p {amberdir}/parm10.dat -p {amberdir}/frcmod.ff14SB -t {amberdir}/amino12.in -t {amberdir}/aminoct12.in -t {amberdir}/aminont12.in -m amino_acids {tmpdir}/ff".split(), check=True)
+    subprocess.run(["diff", f"{tmpdir}/ff", f"{amberdir}/convert_reference"], check=True)
 
 def test_convert_charmm(tmpdir):
     subprocess.run(f"viparr-convert-charmm -p {chmdir}/par_all36m_prot.prm -n {chmdir}/amino_acids -t {chmdir}/top_all36_prot.rtf {tmpdir}/ff".split(), check=True)
