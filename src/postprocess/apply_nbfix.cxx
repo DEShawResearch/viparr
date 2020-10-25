@@ -1,18 +1,8 @@
 #include "compile_plugins.hxx"
 #include "../add_system_tables.hxx"
 #include "../ff.hxx"
+#include "../util/util.hxx"
 #include <msys/override.hxx>
-#include <boost/tokenizer.hpp>
-
-namespace {
-
-    void tokenize(const std::string& type, std::vector<std::string>& tokens) {
-        boost::char_separator<char> sep(" ");
-        boost::tokenizer<boost::char_separator<char> > boost_tokens(type, sep);
-        tokens = std::vector<std::string>(boost_tokens.begin(),
-                boost_tokens.end());
-    }
-}
 
 void desres::viparr::ApplyNBFix(msys::SystemPtr sys) {
     if (sys->table("nonbonded") == msys::TermTablePtr()
@@ -70,8 +60,7 @@ void desres::viparr::ApplyNBFix(msys::SystemPtr sys) {
         std::string nbfix_identifier = vdw2->value(vdw2_id,
                 "nbfix_identifier").asString();
         std::string type = vdw2->value(vdw2_id, "type").asString();
-        std::vector<std::string> tokens;
-        tokenize(type, tokens);
+        auto tokens = ViparrSplitString(type);
         if (tokens.size() != 2)
             VIPARR_FAIL("vdw2 parameters must have exactly two types");
         std::string type1 = tokens[0];

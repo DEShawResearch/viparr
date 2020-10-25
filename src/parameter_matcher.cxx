@@ -1,10 +1,10 @@
 #include "base.hxx"
 #include "parameter_matcher.hxx"
+#include "util/util.hxx"
 #include <algorithm>
 #include <cstring>
 #include <sstream>
 
-#include <boost/algorithm/string/replace.hpp>
 
 using namespace desres::viparr;
 
@@ -226,10 +226,10 @@ namespace desres { namespace viparr {
           param_type = _pattern_list[kv.first].print();
         else {
           param_type = _param_table->value(paramid, "type").asString();
-          boost::replace_all(param_type, " -", "-");
-          boost::replace_all(param_type, "- ", "-");
-          boost::replace_all(param_type, " =", "=");
-          boost::replace_all(param_type, "= ", "=");
+          ViparrReplaceAll(param_type, " -", "-");
+          ViparrReplaceAll(param_type, "- ", "-");
+          ViparrReplaceAll(param_type, " =", "=");
+          ViparrReplaceAll(param_type, "= ", "=");
         }
 
         std::cout << table_name << ":: " << param_type << " " << kv.second;

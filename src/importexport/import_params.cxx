@@ -1,8 +1,7 @@
 #include "import_ff.hxx"
 #include "../append_params.hxx"
+#include "../util/util.hxx"
 #include <msys/fastjson/parse.hxx>
-#include <boost/tokenizer.hpp>
-#include <sstream>
 
 namespace dfj = desres::msys::fastjson;
 using namespace desres;
@@ -67,13 +66,7 @@ std::list<msys::Id> desres::viparr::ImportParams(const std::string& name,
     if (type.kind() == dfj::Json::Array)
         npatterns = type.size();
     else {
-        boost::char_separator<char> sep(" ");
-        std::string type_str(type.as_string());
-        boost::tokenizer<boost::char_separator<char> >
-            boost_tokens(type_str, sep);
-        std::vector<std::string> tokens(boost_tokens.begin(),
-                boost_tokens.end());
-        npatterns = tokens.size();
+        npatterns = ViparrSplitString(type.as_string()).size();
     }
     if (name == "vdw1" && npatterns != 1)
         VIPARR_FAIL("vdw1 table must have exactly one type");
@@ -171,12 +164,8 @@ std::list<msys::Id> desres::viparr::ImportParams(const std::string& name,
                 type_string += " " + type_vec[j];
             }
         } else {
-            boost::char_separator<char> sep(" ");
-            std::string type_str(type.as_string());
-            boost::tokenizer<boost::char_separator<char> >
-                boost_tokens(type_str, sep);
-            std::vector<std::string> tokens(boost_tokens.begin(),
-                    boost_tokens.end());
+            auto type_str = type.as_string();
+            auto tokens = ViparrSplitString(type_str);
             if (tokens.size() != npatterns) {
                 std::stringstream msg;
                 msg << "'type' field of row " << i

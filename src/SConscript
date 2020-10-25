@@ -69,6 +69,7 @@ postprocess/fix_masses.cxx
 
 util/get_bonds_angles_dihedrals.cxx
 util/system_to_dot.cxx
+util/util.cxx
 
 add_system_tables.cxx
 append_params.cxx

@@ -1,8 +1,6 @@
 #include "base.hxx"
 #include "pattern.hxx"
-#include <boost/assign/list_of.hpp>
-#include <boost/tokenizer.hpp>
-#include <sstream>
+#include "util/util.hxx"
 
 using namespace desres;
 using namespace desres::viparr;
@@ -96,10 +94,7 @@ namespace {
     }
 
     void tokenize(const std::string& type, std::vector<std::string>& tokens) {
-        boost::char_separator<char> sep(" ");
-        boost::tokenizer<boost::char_separator<char> > boost_tokens(type, sep);
-        tokens = std::vector<std::string>(boost_tokens.begin(),
-                boost_tokens.end());
+        tokens = ViparrSplitString(type);
     }
 
     Pattern tp_default(const std::string& type) {
@@ -341,7 +336,7 @@ namespace desres { namespace viparr {
             new SystemToPatternC(sp_pseudo_bond_to_second));
 
     std::set<std::string> TypeToPattern::BondStrings
-        = boost::assign::list_of("-")("=")("#")(":")("~");
+        = {"-","=","#",":","~"};
 
     TypeToPatternPtr TypeToPattern::Default(new TypeToPatternC(tp_default));
     TypeToPatternPtr TypeToPattern::Pseudo(new TypeToPatternC(tp_pseudo));

@@ -4,7 +4,6 @@
 
 #include <algorithm>
 #include <string>
-#include <boost/algorithm/string/join.hpp>
 
 desres::msys::TermTablePtr desres::viparr::AddPairsTable(msys::SystemPtr sys) {
   auto iter = Rules::VDWFuncRegistry().find(sys->nonbonded_info.vdw_funct);
