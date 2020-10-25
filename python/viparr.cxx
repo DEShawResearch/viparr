@@ -55,6 +55,7 @@ static void export_forcefield(module m) {
         .def("rowIDs", &Forcefield::rowIDs)
         .def("cmapTable", &Forcefield::cmapTable)
         .def("cmapTables", &Forcefield::cmapTables)
+        .def("addCmapTable", &Forcefield::addCmapTable)
         .def("appendParam", &Forcefield::appendParam)
         ;
 }
@@ -165,6 +166,7 @@ static void export_typers(module m) {
         .def("addExclusion", &TemplatedSystem::addExclusion)
         .def("addImproper", &TemplatedSystem::addImproper)
         .def("addCmap", &TemplatedSystem::addCmap)
+        .def("clone", &TemplatedSystem::clone)
         ;
 
 }
