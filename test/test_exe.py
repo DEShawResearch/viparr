@@ -23,3 +23,4 @@ def test_convert_amber(tmpdir):
 
 def test_convert_charmm(tmpdir):
     subprocess.run(f"viparr-convert-charmm -p {chmdir}/par_all36m_prot.prm -n {chmdir}/amino_acids -t {chmdir}/top_all36_prot.rtf {tmpdir}/ff".split(), check=True)
+    subprocess.run(["diff", f"{tmpdir}/ff", f"{chmdir}/convert_reference"], check=True)
