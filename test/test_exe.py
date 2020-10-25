@@ -1,9 +1,9 @@
-from __future__ import print_function
-
 import subprocess
 import os
-dmsdir='%s/dms' % os.path.dirname(__file__)
-ffdir='%s/ff3' % os.path.dirname(__file__)
+here=os.path.dirname(__file__)
+dmsdir=f'{here}/dms'
+ffdir=f'{here}/ff3'
+amberdir=f'{here}/conversion/amber'
 
 def test_iviparr(tmpdir):
     import garden
@@ -17,3 +17,5 @@ def test_build_constraints(tmpdir):
 def test_compare_forcefields(tmpdir):
     subprocess.run(["viparr-compare-forcefields", f"{ffdir}/amber03", f"{ffdir}/amber99"], check=True)
 
+def test_convert_amber(tmpdir):
+    subprocess.run(f"viparr-convert-amber -p {amberdir}/parm10.dat -p {amberdir}/frcmod.ff14SB -t {amberdir}/amino12.in -t {amberdir}/aminoct12.in -t {amberdir}/aminont12.in -m amino_acids {tmpdir}/ff".split(), check=True)

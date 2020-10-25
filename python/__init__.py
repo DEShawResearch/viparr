@@ -357,17 +357,7 @@ class Forcefield(object):
         if len(rowIDs) == 0:
             return []
         for k, v in kwds.items():
-            if type(v) == int:
-                rowIDs = _viparr.Forcefield.FilterParamsInt(name, rowIDs, k, v)
-            elif type(v) == float:
-                rowIDs = _viparr.Forcefield.FilterParamsFloat(name, rowIDs, k,
-                        v)
-            elif type(v) == str:
-                rowIDs = _viparr.Forcefield.FilterParamsString(name, rowIDs, k,
-                        v)
-            else:
-                raise RuntimeError("Type of value for keyword '" + k + \
-                        "' must be int, float, or str")
+            rowIDs = _viparr.Forcefield.FilterParams(name, rowIDs, k, v)
             if len(rowIDs) == 0:
                 return []
         table = Forcefield.ParamTable(name)
@@ -398,7 +388,7 @@ class Forcefield(object):
                 param._ptr != self.ParamTable(name)._ptr:
             raise RuntimeError("Parameter " + repr(param) + \
                     " does not belong to this table")
-        self._Forcefield.appendParams(name, [param.id])
+        self._Forcefield.appendParam(name, param.id)
         return param
 
     def delParams(self, name, params=None, **kwds):

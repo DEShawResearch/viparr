@@ -365,6 +365,7 @@ def apply_cmap_to_templates(FFconv):
     # alpha carbon of each cmap term, and then duplicate the bonded parameters as
     # necessary.
     # Also make sure all residues use the same atomtype names
+    if not FFconv.cmaps: return
     unique_types = set()
     bbnames =  ["N", "CA", "C"]
     typer = FFconv.viparrff.typer
@@ -411,7 +412,7 @@ def apply_cmap_to_templates(FFconv):
 
     rewrite = set(rewrite)
     rewriteRef = set([v[0] for v in rewrite])
-    assert len(rewriteRef) == 1
+    assert len(rewriteRef) == 1, f"Got rewriteRef {rewriteRef}; expected exactly 1 element"
     rewriteRef = rewriteRef.pop()
     rewrite = sorted([v[1] for v in rewrite])
     assert len(set(rewrite)) == len(rewrite)
@@ -681,7 +682,7 @@ def loadtempl(filename,pref,fftype,FFconv):
     next(file) # card2
 
     while(1):
-        words=file.next().split()
+        words=next(file).split()
         #print words
         if len(words)==0:
             break
@@ -695,11 +696,11 @@ def loadtempl(filename,pref,fftype,FFconv):
         namef=next(file)
 
         #card 5
-        tname=file.next().split()[0]
+        tname=next(file).split()[0]
         nameres=pref+tname
 
         #card 6
-        ifixc=file.next().split()[0]
+        ifixc=next(file).split()[0]
 
         #card 7
         next(file)
@@ -712,7 +713,7 @@ def loadtempl(filename,pref,fftype,FFconv):
         alist=[]
         mainchain=[]
         while(1):
-            line=file.next().strip()
+            line=next(file).strip()
             if len(line)==0: break
             words=line.split()
 
@@ -823,7 +824,7 @@ def loadtempl(filename,pref,fftype,FFconv):
         xtrabond=list()
         xtraimpr=list()
         while(1):
-            words=file.next().split()
+            words=next(file).split()
             if len(words)==0:
                 continue
             if words[0] == 'DONE':
@@ -831,7 +832,7 @@ def loadtempl(filename,pref,fftype,FFconv):
             elif words[0] == 'CHARGE':
                 i=0
                 while(1):
-                    words=file.next().split()
+                    words=next(file).split()
                     if len(words)==0:
                         break
                     for q in words:
@@ -840,7 +841,7 @@ def loadtempl(filename,pref,fftype,FFconv):
                         i=i+1
             elif words[0] == 'LOOP':
                 while(1):
-                    words=file.next().split()
+                    words=next(file).split()
                     if len(words)==0:
                         break
                     a0,a1=list(map(amap.get,words))
@@ -848,7 +849,7 @@ def loadtempl(filename,pref,fftype,FFconv):
             elif words[0] == 'IMPROPER':
                 # Dont process impropers anymore, just use automated method to generate
                 while(1):
-                    if(len(file.next().strip())==0): break
+                    if(len(next(file).strip())==0): break
             else:
                 print("Unknown section in card 9")
                 error(str(words))

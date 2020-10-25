@@ -40,6 +40,13 @@ static void export_forcefield(module m) {
         .def_static("AddParamTable", &Forcefield::AddParamTable)
         .def_static("ClearParamTables", &Forcefield::ClearParamTables)
         .def_static("AllParamTables", &Forcefield::AllParamTables)
+        .def_static("FilterParams", [](std::string name, IdList params, std::string key, object value) {
+            if (isinstance<int_>(value)) return Forcefield::FilterParams(name, params, key, value.cast<int>());
+            if (isinstance<float_>(value)) return Forcefield::FilterParams(name, params, key, value.cast<double>());
+            if (isinstance<str>(value)) return Forcefield::FilterParams(name, params, key, value.cast<std::string>());
+            PyErr_SetString(PyExc_ValueError, "value must be int, float or string");
+            throw error_already_set();
+            })
         .def("rules", &Forcefield::rules)
         .def("resetRules", &Forcefield::resetRules)
         .def("typer", &Forcefield::typer)
@@ -48,6 +55,7 @@ static void export_forcefield(module m) {
         .def("rowIDs", &Forcefield::rowIDs)
         .def("cmapTable", &Forcefield::cmapTable)
         .def("cmapTables", &Forcefield::cmapTables)
+        .def("appendParam", &Forcefield::appendParam)
         ;
 }
 
@@ -118,6 +126,7 @@ static void export_typers(module m) {
         .def(init(&TemplateTyper::create))
         .def("templates", &TemplateTyper::templates)
         .def("addTemplate", &TemplateTyper::addTemplate)
+        .def("findTemplate", &TemplateTyper::findTemplateByName)
         .def("matchFragment", [](TemplateTyper& typer, TemplatedSystemPtr sys, IdList const& atoms) {
             std::stringstream ss;
             std::vector<std::pair<TemplatedSystemPtr, IdList> > matches;
@@ -147,6 +156,15 @@ static void export_typers(module m) {
         .def("exclusions", &TemplatedSystem::exclusions)
         .def("impropers", &TemplatedSystem::impropers)
         .def("cmaps", &TemplatedSystem::cmaps)
+        .def("setTypes", &TemplatedSystem::setTypes)
+        .def("addTypedAtom", &TemplatedSystem::addTypedAtom)
+        .def("addNonPseudoBond", &TemplatedSystem::addNonPseudoBond)
+        .def("addPseudoBond", &TemplatedSystem::addPseudoBond)
+        .def("addAngle", &TemplatedSystem::addAngle)
+        .def("addDihedral", &TemplatedSystem::addDihedral)
+        .def("addExclusion", &TemplatedSystem::addExclusion)
+        .def("addImproper", &TemplatedSystem::addImproper)
+        .def("addCmap", &TemplatedSystem::addCmap)
         ;
 
 }
