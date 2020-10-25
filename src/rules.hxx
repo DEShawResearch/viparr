@@ -5,7 +5,6 @@
 #include <vector>
 #include <map>
 #include <memory>
-#include <boost/assign.hpp>
 
 namespace desres { namespace viparr {
 

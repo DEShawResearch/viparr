@@ -175,31 +175,31 @@ namespace desres { namespace viparr {
 
 static Rules::VDWFunc LJ12_6_SIG_EPSILON = {
     "vdw_12_6",
-    boost::assign::list_of("sigma")("epsilon"),
+    {"sigma","epsilon"},
     "pair_12_6_es",
-    boost::assign::list_of("aij")("bij"),
-    boost::assign::list_of("geometric")("arithmetic/geometric")
+    {"aij","bij"},
+    {"geometric","arithmetic/geometric"},
 };
 static Rules::VDWFunc EXP_6X = {
     "vdw_exp_6",
-    boost::assign::list_of("alpha")("epsilon")("rmin"),
+    {"alpha","epsilon","rmin"},
     "pair_exp_6_es",
-    boost::assign::list_of("aij")("bij")("cij"),
-    boost::assign::list_of("lb/geometric")
+    {"aij","bij","cij"},
+    {"lb/geometric"},
 };
 static Rules::VDWFunc NONE = {
     "none",
     std::vector<std::string>(),
     "none",
     std::vector<std::string>(),
-    boost::assign::list_of("none")
+    {"none"},
 };
 static Rules::VDWFunc FROM_TABLES = {
     "from_tables",
     std::vector<std::string>(),
     "from_tables",
     std::vector<std::string>(),
-    boost::assign::list_of("from_tables")
+    {"from_tables"},
 };
 static Rules::RegisterVDWFunc _1("lj12_6_sig_epsilon", LJ12_6_SIG_EPSILON);
 static Rules::RegisterVDWFunc _2("exp_6x", EXP_6X);
