@@ -1,4 +1,8 @@
 Release Notes:
+    4.7.27  Fix viparr-convert-{amber,charmm}.
+            Add a few more missing bindings.
+            Eliminate usage of boost.
+
     4.7.26  Add missing bindings for MergeForcefields.
 
     4.7.25  Convert to pybind11.
