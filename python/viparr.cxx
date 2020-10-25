@@ -11,6 +11,7 @@
 #include "../src/pattern.hxx"
 #include "../src/postprocess/build_constraints.hxx"
 #include "../src/postprocess/fix_masses.hxx"
+#include "../src/postprocess/compile_plugins.hxx"
 #include "../src/execute_viparr.hxx"
 #include "../src/execute_iviparr.hxx"
 #include "../src/util/get_bonds_angles_dihedrals.hxx"
@@ -169,6 +170,7 @@ static void export_typers(module m) {
         .def("clone", &TemplatedSystem::clone)
         ;
 
+
 }
 
 PYBIND11_MODULE(_viparr, m) {
@@ -183,6 +185,9 @@ PYBIND11_MODULE(_viparr, m) {
     m.def("ReorderIDs", ReorderIDs);
     m.def("ImportForcefield", ImportForcefield);
     m.def("MergeForcefields", MergeForcefields);
+    m.def("MergeRules", MergeRules);
+    m.def("MergeTemplates", MergeTemplates);
+    m.def("MergeParams", MergeParams);
     m.def("ImportRules", ImportRules);
     m.def("ImportTemplates", ImportTemplates);
     m.def("ImportCmap", ImportCmap);
@@ -210,6 +215,10 @@ PYBIND11_MODULE(_viparr, m) {
         SystemToDot(mol, ss, residue_id);
         return ss.str();
         });
+    m.def("CompilePlugins", CompilePlugins);
+    m.def("AddPairsTable", AddPairsTable);
+    m.def("ApplyNBFix", ApplyNBFix);
+    m.def("CleanupSystem", CleanupSystem);
 
 
     export_forcefield(m);
