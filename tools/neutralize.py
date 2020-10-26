@@ -304,6 +304,8 @@ def Neutralize(mol, cation='NA', anion='CL',
             newion.pos = compute_center(res)
             newion.residue.chain.name = chain
             newion.residue.resid=i+1
+            for atm in newion.residue.atoms:
+                atm.pos = newion.pos
             residues_removed.add(res.id)
             res.remove()
             added.append(newion)
@@ -317,6 +319,8 @@ def Neutralize(mol, cation='NA', anion='CL',
             newion.pos = compute_center(res)
             newion.residue.chain.name = chain2
             newion.residue.resid=i+1-nions
+            for atm in newion.residue.atoms:
+                atm.pos = newion.pos
             residues_removed.add(res.id)
             res.remove()
             added.append(newion)
