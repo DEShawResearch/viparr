@@ -1,7 +1,12 @@
 Release Notes:
-    4.7.27  Fix viparr-convert-{amber,charmm}.
+
+    4.7.29  Fix placement of drudes in viparr-neutralize.
+
+    4.7.28  Fix viparr-convert-{amber,charmm}.
             Add a few more missing bindings.
             Eliminate usage of boost.
+
+    4.7.27  Add formal charges to ions in viparr_neutralize.
 
     4.7.26  Add missing bindings for MergeForcefields.
 
