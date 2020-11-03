@@ -42,8 +42,8 @@ def generate_pdff_templates(ffpath, cation_name, anion_name):
     ffmol = msys.Load(ofile.name)
     cationsys = ffmol.clone("same fragment as name " + cation_name)
     anionsys = ffmol.clone("same fragment as name " + anion_name)
-    print("%d particles in cation system" % cationsys.natoms)
-    print("%d particles in anion system" % anionsys.natoms)
+    cationsys.atom(0).formal_charge = IONPROPS[cation_name][1]
+    anionsys.atom(0).formal_charge = IONPROPS[anion_name][1]
     return cationsys, anionsys
 
 
@@ -60,8 +60,7 @@ def parse_ff(ffname, ffdir, ff):
     return ff
 
 def parse_ion(name, ff, verbose):
-    ionprop = IONPROPS.get(name)
-    if ionprop is None: ionprop = IONPROPS.get(name.upper())
+    ionprop = IONPROPS.get(name.upper())
     if ionprop is None:
         raise ValueError("Unrecognized ion type '%s'" % name)
     anum, charge = ionprop
@@ -73,6 +72,7 @@ def parse_ion(name, ff, verbose):
     atom.name = name
     atom.atomic_number=anum
     atom.charge=charge
+    atom.formal_charge = charge
     atom.mass = msys.MassForElement(anum)
     if ff:
         viparr.ExecuteViparr(ionsys, [ff], verbose=verbose)
@@ -155,6 +155,7 @@ def Neutralize(mol, cation='NA', anion='CL',
     # up to the desired concentration.  
     if os.path.isfile(ffdir):
         # pdff.  parameterize ions to generate ionsys and cationsys
+        ff = ffdir
         cationsys, anionsys = generate_pdff_templates(ffdir, cation, anion)
     else:
         # viparr forcefield.
@@ -167,7 +168,10 @@ def Neutralize(mol, cation='NA', anion='CL',
 
     solute=mol.select("""not ((atomicnumber %d and not bonded) or (atomicnumber %d and not bonded)) or (%s)""" %
                       (cationatom.atomic_number, anionatom.atomic_number, keep))
-    cg = sum(a.charge for a in solute)
+    if ff:
+        cg = sum(a.charge for a in solute)
+    else:
+        cg = sum(a.formal_charge for a in solute)
     if verbose:
         print("neutralize: solute charge=%s" % cg)
 
@@ -409,13 +413,10 @@ def main():
     if args.verbose:
         print("Loading input file <%s>" % ifile)
     mol = msys.Load(ifile, structure_only=args.no_ff)
+    if not args.no_ff and not mol.table_names:
+        parser.error("Missing forcefield in input system")
     del cfg['no_ff']
 
-    if not mol.table_names:
-        parser.error("\nERROR: This system has not yet been parameterized with a \
-force-field. You must run viparr_neutralize AFTER \
-applying your force-field, because force-field application may \
-change the net charge.")
 
     mol = Neutralize(mol, **cfg)
         
