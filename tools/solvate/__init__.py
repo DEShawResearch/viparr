@@ -291,14 +291,11 @@ def main():
     elif len(args)==2:
         input, output = args
         if opts.verbose: print("Loading input file <%s>" % input)
-        if opts.ffname != '' or opts.ffdir != '':
-            mol=msys.Load(input, structure_only=False)
-        else:
-            mol=msys.Load(input, structure_only=True)
+        mol = msys.Load(input)
     elif len(args)==3:
         input, watbox, output = args
         if opts.verbose: print("Loading input file <%s>" % input)
-        mol=msys.Load(input, structure_only=False)
+        mol=msys.Load(input)
     else:
         parser.error("incorrect number of arguments")
 

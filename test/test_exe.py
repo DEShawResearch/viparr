@@ -51,6 +51,5 @@ def test_solvate(tmpdir):
     # no forcefield ok if none in input system
     call(f"viparr_solvate {dmsdir}/chiral1a.sdf {tmpdir}/solv.dms")
 
-    # FIXME - this should fail because ww.dms has a forcefield.  we don't want solvate to silently lose information
-    # no forcefield
-    #fail(f"viparr_solvate {dmsdir}/ww.dms {tmpdir}/solv.dms")
+    # no forcefield specified, but input has a forcefield
+    fail(f"viparr_solvate {dmsdir}/ww.dms {tmpdir}/solv.dms")
