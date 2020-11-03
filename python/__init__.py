@@ -1641,7 +1641,7 @@ def ExportParams(params, path):
     table = params[0]._ptr
     _viparr.ExportParams(table, [param.id for param in params], path)
 
-def MergeForcefields(src, patch, append_only=False, verbose=True):
+def MergeForcefields(src, patch, append_only=False, verbose=False):
     """Merge forcefield patch into forcefield src.
 
     Merges rules, templates, param tables, scored SMARTS atomtypes, SMARTS
@@ -1666,7 +1666,7 @@ def MergeForcefields(src, patch, append_only=False, verbose=True):
     _viparr.MergeForcefields(src._Forcefield, patch._Forcefield, append_only,
             verbose)
 
-def MergeRules(src_rules, patch_rules, verbose=True):
+def MergeRules(src_rules, patch_rules, verbose=False):
     """Merge rules and plugins of patch into src.
 
     VDW functional form and combine rule, exclusion rule, and ES and LJ scaling
@@ -1682,7 +1682,7 @@ def MergeRules(src_rules, patch_rules, verbose=True):
     """
     _viparr.MergeRules(src_rules._Rules, patch_rules._Rules, verbose)
 
-def MergeTemplates(src_typer, patch_typer, append_only=False, verbose=True):
+def MergeTemplates(src_typer, patch_typer, append_only=False, verbose=False):
     """Merge templates of patch into src.
 
     If append_only is False, templates of patch overwrite any templates in src
@@ -1701,7 +1701,7 @@ def MergeTemplates(src_typer, patch_typer, append_only=False, verbose=True):
     _viparr.MergeTemplates(src_typer._Typer, patch_typer._Typer, append_only,
             verbose)
 
-def MergeParams(src_params, patch_params, append_only=False, verbose=True):
+def MergeParams(src_params, patch_params, append_only=False, verbose=False):
     """Merge parameters of patch into src for a single param table.
 
     If append_only is False, rows in patch overwrite any rows in src matching
@@ -2387,7 +2387,7 @@ def ExecuteFFDETypify(ifile, ofile, ffde):
     
 def ExecuteViparr(system, ffs, atoms=None, rename_atoms=False,
         rename_residues=False, with_constraints=True, fix_masses=True,
-        fatal=True, compile_plugins=True, verbose=True, verbose_matching=True):
+        fatal=True, compile_plugins=True, verbose=False, verbose_matching=False):
     """Run viparr to parametrize a system using a list of forcefields.
 
     Equivalent to the viparr command-line executable without reorder-ids
