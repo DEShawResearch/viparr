@@ -26,7 +26,6 @@ loadmodules() {
 
 genmodules() {
     cat << EOF > $GARDENDIR/lib-python37
-prereq $MSYS/lib-python37
 prepend-path PYTHONPATH ${PREFIX}/lib/python
 EOF
 
