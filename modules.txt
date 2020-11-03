@@ -1,4 +1,4 @@
 desres-python/3.7.7-04c7/bin
 msys/1.7.312c7/lib-python37
 yas/0.159c7/lib-python37
-thermika/2020.10.15-01c7/bin
+thermika/2020.10.31-01c7/bin

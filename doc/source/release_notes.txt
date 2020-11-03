@@ -1,5 +1,12 @@
 Release Notes:
 
+    4.7.30  viparr_solvate: preserve coordinates of solute
+                            remove --center option
+                            support reading of non-DMS files
+                            Never discard forcefield from input
+            viparr_neutralize: use formal charges when in no-ff mode
+            Use thermika/2020.10.31-01c7/bin to fix Ah1R convention
+                            
     4.7.29  Fix placement of drudes in viparr-neutralize.
 
     4.7.28  Fix viparr-convert-{amber,charmm}.
