@@ -1,6 +1,5 @@
 import os, msys, viparr
 import numpy
-from msys.wrap import Wrapper
 
 mydir = os.path.dirname(__file__)
 
@@ -40,7 +39,7 @@ def remove_periodic_contacts(_mol, npro, dist):
         _mol=_mol.clone('not same fragid as index ' + ' '.join(map(str, bad)))
     return _mol
 
-def Solvate(mol, watbox=None, dims=None, center=None,
+def Solvate(mol, watbox=None, dims=None,
             chain='WT', verbose=True, ffname='', ffdir='', ff=[],
             without_constraints=False, water_free_zone_width = WATCON,
             without_fix_masses=True, solvent_radius=WATRAD,
@@ -108,17 +107,22 @@ def Solvate(mol, watbox=None, dims=None, center=None,
     else:
         dims=[float(x) for x in dims]
     
-    if center is None:
-        center=[0,0,0]
-    elif len(center)!=3:
-        raise ValueError("Center must be given as list of three values")
-    else:
-        center=[float(x) for x in center]
+    """
+    shift solute to origin before tiling; we'll undo this transformation later
+    this ensures that we properly remove overlaps with the tiled water boxes,
+    since the pbwithin selection currently only considers one periodic
+    image distance.
 
-    # do periodic wrapping before finding overlaps, in case the solute is far from the origin
-    # do this _before_ updating the cell to its new dimensions!
-    # DESRESCode#4602
-    Wrapper(mol).wrap()
+    Previously, we applied periodic wrapping to the input file before
+    solvating, with the idea that we don't want to miss overlapping waters.
+    But that assumes we have a decent periodic cell in the first place, and
+    also messes with the coordinates of the solute, which can make life
+    difficult for workflows trying to automate the assembly of
+    protein-ligand complexes.
+    """
+
+    solute_center = mol.center
+    mol.translate(-solute_center)
 
     # update the cell
     mol.cell[0][:]=[dims[0],0,0]
@@ -126,19 +130,19 @@ def Solvate(mol, watbox=None, dims=None, center=None,
     mol.cell[2][:]=[0,0,dims[2]]
 
     # extract where to put the water
-    xmin = center[0]-0.5*dims[0]
-    ymin = center[1]-0.5*dims[1]
-    zmin = center[2]-0.5*dims[2]
-    xmax = center[0]+0.5*dims[0]
-    ymax = center[1]+0.5*dims[1]
-    zmax = center[2]+0.5*dims[2]
+    xmin = -0.5*dims[0]
+    ymin = -0.5*dims[1]
+    zmin = -0.5*dims[2]
+    xmax = +0.5*dims[0]
+    ymax = +0.5*dims[1]
+    zmax = +0.5*dims[2]
     nx = int(dims[0]/watsize[0]) + 1
     ny = int(dims[1]/watsize[1]) + 1
     nz = int(dims[2]/watsize[2]) + 1
 
-    xshift = center[0] -0.5 * (nx-1)*watsize[0]
-    yshift = center[1] -0.5 * (ny-1)*watsize[1]
-    zshift = center[2] -0.5 * (nz-1)*watsize[2]
+    xshift = -0.5 * (nx-1)*watsize[0]
+    yshift = -0.5 * (ny-1)*watsize[1]
+    zshift = -0.5 * (nz-1)*watsize[2]
 
     # replicate the template water box
     if verbose: print("replicating %d x %d x %d" % (nx,ny,nz))
@@ -197,6 +201,9 @@ def Solvate(mol, watbox=None, dims=None, center=None,
                 r.resid = watres
                 watres += 1
 
+    # undo the shift we applied
+    mol.translate(solute_center)
+
     # fix mass
     if not without_fix_masses:
         viparr.FixMasses(mol, mol.select('water'), verbose=verbose)
@@ -251,8 +258,6 @@ def main():
             help='water box dimensions: 1 or 3 comma-separated values')
     parser.add_argument('-t', '--thickness', default=None, type=float,
             help='Minimum distance between solute and edge of water box')
-    parser.add_argument('-c', '--center', default=None,
-            help='center of box as 3 comma-separated values; default 0,0,0')
     parser.add_argument('-n', '--chain', default='WT',
             help='Chain name of constructed water box')
     parser.add_argument('-v', '--verbose', default=False, action='store_true')
@@ -307,8 +312,6 @@ def main():
         opts.dims = [extent,extent,extent]
         print("Final box dimensions:", opts.dims)
     del opts.__dict__['thickness']
-    if opts.center is not None:
-        opts.center = [float(x) for x in opts.center.split(',')]
 
     mol = Solvate(mol, watbox, **opts.__dict__)
 

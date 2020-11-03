@@ -36,7 +36,7 @@ by the ``viparr-ff`` garden module.
 
 To add a water box to a chemical system, use ``viparr_solvate``::
 
-    viparr_solvate system.ff.dms system.solv.dms --ffname water.tip3p -t 10 -c protein
+    viparr_solvate system.ff.dms system.solv.dms --ffname water.tip3p -t 10
 
 This command tiles a pre-equilibrated water box around the atoms in the
 input system, such that there is at least 10A from any system atom to the
