@@ -149,6 +149,8 @@ def parser():
     parser.add_argument("--reorder-ids", action="store_true", help="reorder atom ids so that pseudos are next to parents")
     parser.add_argument("--rename-atoms", action="store_true", help="copy template atom names to system")
     parser.add_argument("--rename-residues", action="store_true", help="copy template residue names to system")
+    parser.add_argument("--without-prochiral-renaming", action="store_false", dest="rename_prochiral_atoms",
+                        help="rename protein atoms whose nomenclature is chirality-sensitive")
     parser.add_argument("--without-constraints", action="store_false", dest='with_constraints', help="do not build constraints")
     parser.add_argument("--without-fix-masses", action="store_false", dest='fix_masses',
                         help="do not equate masses for atoms of the same element")
@@ -185,7 +187,8 @@ def run_viparr(args):
         viparr._viparr.ExecuteViparr(mol._ptr, ffs, ids,
                 args.rename_atoms, args.rename_residues, args.with_constraints,
                 args.fix_masses, not args.non_fatal,
-                compile_plugins, args.verbose_plugins, args.verbose_matching)
+                compile_plugins, args.verbose_plugins, args.verbose_matching,
+                args.rename_prochiral_atoms)
 
     if args.ligand_files:
         ligands = [msys.Load(f) for f in args.ligand_files]

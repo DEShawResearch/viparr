@@ -17,7 +17,8 @@ namespace desres { namespace viparr {
             bool rename_residues=false, bool with_constraints=true,
             bool fix_masses=true, bool fatal=true,
             bool compile_plugins=true, bool verbose=true,
-            bool verbose_matching=false);
+            bool verbose_matching=false,
+            bool rename_prochiral_atoms=false);
 
     /* Create a copy of the system in which IDs of pseudo atoms are adjacent
      * to their parent atoms */

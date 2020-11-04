@@ -128,3 +128,28 @@ def test_apply_ff_chiral():
     with pytest.raises(ValueError):
         viparr.ApplyLigandForcefields(mol1, [mol2], match_tet_stereo=True)
 
+
+def testFixProchiralProteinAtomNames():
+    # These are 4 NMR structures (so they have resolved protons). The PDB follows
+    # the IUPAC conventions, so that means we shouldn't get any flips/
+    pdb_codes = ["1D3Z", "1G03", "1XPW", "2KOD"]
+    dmses = []
+    for code in pdb_codes:
+        dmses.append(msys.Load(f"test/dms/prochiral/{code}.0.pdb"))
+
+    for dms in dmses:
+        flippedAtomIds = viparr.FixProchiralProteinAtomNames(dms)
+        assert len(flippedAtomIds) == 0
+
+def testViparrRenameProchiral():
+    mol = msys.Load("test/dms/ww.dms", structure_only=True)
+    ffs = [viparr.ImportForcefield(viparr.find_forcefield(f))
+            for f in ("aa.amber.ff99", "water.tip3p")]
+    mol1 = mol.clone()
+    mol2 = mol.clone()
+    viparr.ExecuteViparr(mol1, ffs, rename_atoms=True, rename_residues=True, rename_prochiral_atoms=True, verbose=True)
+    viparr.ExecuteViparr(mol2, ffs, rename_atoms=True, rename_residues=True, rename_prochiral_atoms=False, verbose=True)
+    assert mol1.natoms==mol2.natoms
+    renamed = [(a,b) for a,b in zip(mol1.atoms, mol2.atoms) if a.name != b.name]
+    assert len(renamed) == 14
+

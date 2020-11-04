@@ -4,6 +4,7 @@
 #include "postprocess/build_constraints.hxx"
 #include "postprocess/compile_plugins.hxx"
 #include "postprocess/fix_masses.hxx"
+#include "postprocess/prochirality.hxx"
 
 #include <viparr/version.hxx> /* Auto-generated in SConscript */
 
@@ -27,7 +28,8 @@ namespace desres { namespace viparr {
                        const std::vector<ForcefieldPtr>& fflist,
                        const msys::IdList& atoms, bool rename_atoms, bool rename_residues,
                        bool with_constraints, bool fix_masses, bool fatal,
-                       bool compile_plugins, bool verbose, bool verbose_matching) {
+                       bool compile_plugins, bool verbose, bool verbose_matching,
+                       bool rename_prochiral_atoms) {
 
       if (atoms.size() == 0)
         VIPARR_FAIL("No atoms selected for VIPARR parametrization");
@@ -353,6 +355,17 @@ namespace desres { namespace viparr {
         if (verbose)
           VIPARR_OUT << "Fixing masses" << std::endl;
         FixMasses(sys, atoms_no_pseudos, verbose);
+      }
+
+      if (rename_prochiral_atoms) {
+          if (rename_atoms && rename_residues) {
+            auto ids = FixProchiralProteinAtomNames(sys);
+            if (verbose) {
+              VIPARR_OUT << " Number of updated prochiral atom names: " << ids.size() << "\n";
+            }
+         } else {
+           VIPARR_ERR << "WARNING: will NOT fix prochiral atom names because rename_atoms or rename_residues was not enabled\n";
+         }
       }
 
       double end_charge = 0.0;

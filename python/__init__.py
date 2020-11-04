@@ -2387,7 +2387,8 @@ def ExecuteFFDETypify(ifile, ofile, ffde):
     
 def ExecuteViparr(system, ffs, atoms=None, rename_atoms=False,
         rename_residues=False, with_constraints=True, fix_masses=True,
-        fatal=True, compile_plugins=True, verbose=False, verbose_matching=False):
+        fatal=True, compile_plugins=True, verbose=False, verbose_matching=False,
+        rename_prochiral_atoms=False):
     """Run viparr to parametrize a system using a list of forcefields.
 
     Equivalent to the viparr command-line executable without reorder-ids
@@ -2439,7 +2440,8 @@ def ExecuteViparr(system, ffs, atoms=None, rename_atoms=False,
         atoms = system.atoms
     _viparr.ExecuteViparr(system._ptr, [ff._Forcefield for ff in ffs],
             [atom.id for atom in atoms], rename_atoms, rename_residues,
-            with_constraints, fix_masses, fatal, compile_plugins, verbose, verbose_matching)
+            with_constraints, fix_masses, fatal, compile_plugins, verbose, verbose_matching,
+            rename_prochiral_atoms)
 
 class CompilePlugins(object):
     """A collection of plugin compilation functions and helper functions.
@@ -2624,6 +2626,33 @@ def FixMasses(system, atoms=None, verbose=True):
     if atoms is None:
         atoms = system.atoms
     _viparr.FixMasses(system._ptr, [atom.id for atom in atoms], verbose)
+
+def FixProchiralProteinAtomNames(system, checkOnly=False):
+    """Fix naming of the substituents on prochiral protein atoms such that
+    they follow the 1969 IUPAC-IUB guidelines [1].
+
+    For example, this ensures that the "CG1" and "CG2" atoms in valine are
+    labeled such that the CG1 is pro-R. See also Figure 1 of [2]. This
+    function should be called on a system after the atom names are assigned,
+    to ensure that the names are assigned in a chirally-correct manner.
+
+    References
+    ----------
+    [1] IUPAC-IUB Commission on Biochemical Nomenclature (CBN) (1970)
+        Abbreviations and symbols for the description of the
+        conformation of polypeptide chains. Tentative Rules 1969, Biochemistry
+        9, 347123479; reprinted in the Compendium
+    [2] Markley, John L., et al. "Recommendations for the presentation
+        of NMR structures of proteins and nucleic acids IUPAC-IUBMB-IUPAB
+        Inter-Union Task Group on the standardization of data bases of protein
+        and nucleic acid structures determined by NMR spectroscopy." Journal
+        of biomolecular NMR 12.1 (1998): 1-23.
+
+    Arguments:
+        system -- :class:`msys.System`
+
+    """
+    return _viparr.FixProchiralProteinAtomNames(system._ptr, checkOnly)
 
 def RotateToMinAABB(system, cubic=True):
     """Find and apply the rigid rotation to the system that minimizes the

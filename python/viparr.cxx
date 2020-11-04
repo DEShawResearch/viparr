@@ -11,6 +11,7 @@
 #include "../src/pattern.hxx"
 #include "../src/postprocess/build_constraints.hxx"
 #include "../src/postprocess/fix_masses.hxx"
+#include "../src/postprocess/prochirality.hxx"
 #include "../src/postprocess/compile_plugins.hxx"
 #include "../src/execute_viparr.hxx"
 #include "../src/execute_iviparr.hxx"
@@ -58,6 +59,7 @@ static void export_forcefield(module m) {
         .def("cmapTables", &Forcefield::cmapTables)
         .def("addCmapTable", &Forcefield::addCmapTable)
         .def("appendParam", &Forcefield::appendParam)
+        .def_readonly("name", &Forcefield::name)
         ;
 }
 
@@ -182,6 +184,7 @@ PYBIND11_MODULE(_viparr, m) {
     m.def("ExecuteViparr", ExecuteViparr);
     m.def("ExecuteIviparr", ExecuteIviparr);
     m.def("FixMasses", FixMasses);
+    m.def("FixProchiralProteinAtomNames", FixProchiralProteinAtomNames);
     m.def("ReorderIDs", ReorderIDs);
     m.def("ImportForcefield", ImportForcefield);
     m.def("MergeForcefields", MergeForcefields);
