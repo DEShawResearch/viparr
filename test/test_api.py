@@ -141,7 +141,7 @@ def testFixProchiralProteinAtomNames():
         flippedAtomIds = viparr.FixProchiralProteinAtomNames(dms)
         assert len(flippedAtomIds) == 0
 
-def testViparrRenameProchiral():
+def testViparrRenameProchiral_1():
     mol = msys.Load("test/dms/ww.dms", structure_only=True)
     ffs = [viparr.ImportForcefield(viparr.find_forcefield(f))
             for f in ("aa.amber.ff99", "water.tip3p")]
@@ -153,3 +153,8 @@ def testViparrRenameProchiral():
     renamed = [(a,b) for a,b in zip(mol1.atoms, mol2.atoms) if a.name != b.name]
     assert len(renamed) == 14
 
+def testViparrRenameProchiral_2():
+    mol = msys.Load("test/dms/prochiral/VVV.dms", structure_only=True)
+    ids = viparr.FixProchiralProteinAtomNames(mol)
+    names = [f"{mol.atom(i).residue.name}:{mol.atom(i).name}" for i in ids]
+    assert names == ["VAL:CB", "VAL:CB", "VAL:CB"]
