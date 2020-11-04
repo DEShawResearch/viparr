@@ -2636,6 +2636,9 @@ def FixProchiralProteinAtomNames(system, checkOnly=False):
     function should be called on a system after the atom names are assigned,
     to ensure that the names are assigned in a chirally-correct manner.
 
+    If called with `checkOnly=True`, the incorrectly identified atoms are
+    identified, but not fixed.
+
     References
     ----------
     [1] IUPAC-IUB Commission on Biochemical Nomenclature (CBN) (1970)
@@ -2650,7 +2653,11 @@ def FixProchiralProteinAtomNames(system, checkOnly=False):
 
     Arguments:
         system -- :class:`msys.System`
+        checkOnly -- bool
 
+    Returns: [int]
+        list of the ids of tetrahedral centers whose substiuent names
+        were flipped
     """
     return _viparr.FixProchiralProteinAtomNames(system._ptr, checkOnly)
 
