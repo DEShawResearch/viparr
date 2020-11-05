@@ -1,5 +1,9 @@
 Release Notes:
 
+    4.7.31  add function to rename atoms in chirality-sensitive manner
+            enable prochiral renaming in viparr when residue and atom renaming
+                are also enabled.
+
     4.7.30  viparr_solvate: preserve coordinates of solute
                             remove --center option
                             support reading of non-DMS files
