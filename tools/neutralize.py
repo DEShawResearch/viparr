@@ -333,7 +333,7 @@ def Neutralize(mol, cation='NA', anion='CL',
 
     msys.AssignBondOrderAndFormalCharge(added)
 
-    if ff and ff.rules.nbfix_identifier:
+    if isinstance(ff, viparr.Forcefield) and ff.rules.nbfix_identifier:
         if verbose:
             print("nbfix terms in ion forcefield; re-running viparr to generate overrides")
         vdw2 = mol.addTable("vdw2", 1, viparr.Forcefield.ParamTable('vdw2'))
