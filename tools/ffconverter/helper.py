@@ -187,6 +187,7 @@ def addTemplateData(typer, newTemplate, symQ):
         fc, bcis, bondChargeToAtomCharge=getFragmentPartitionedCharges(res, formal_charges, atomic_charges, None)
         cleanQ=fc+np.dot(bondChargeToAtomCharge,bcis)
         for atom, charge in zip(res.atoms, cleanQ):
+            if abs(charge) < 1e-5: charge = 0
             atom.charge = round(charge, ndigit+1)
     typer.addTemplate(newTemplate)
 
