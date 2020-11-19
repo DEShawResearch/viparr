@@ -958,8 +958,8 @@ def loadparam_and_template(filename, paramonly, FFconv):
     sstop=[]
     for idx,l in enumerate(pdata):
         if len(l)==0: continue
-        # strip comments and equals
-        l=l.replace('=',' ').replace('!',' ! ')
+        # strip comments
+        l=l.replace('!',' ! ')
         pdata[idx]=l
         words,comment=clean_line(l)
         if(len(words)==0): continue
