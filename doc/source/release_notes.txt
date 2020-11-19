@@ -1,5 +1,7 @@
 Release Notes:
 
+    4.7.32  viparr-convert-charmm: avoid charge=-0.0, handle '=' in resname.
+
     4.7.31  add function to rename atoms in chirality-sensitive manner
             enable prochiral renaming in viparr when residue and atom renaming
                 are also enabled.
