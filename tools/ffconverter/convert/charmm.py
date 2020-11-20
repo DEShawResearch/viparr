@@ -16,6 +16,7 @@ convaname={
   "SP2"  : {"1HG1":"HG1"},
   "THP1" : {"1HG1":"HG1"},
   "THP2" : {"1HG1":"HG1"},
+  "THPB" : {"1HG1":"HG1"},
   "Zn2+" : {"ZN" : "Zn2+"},
   "Cs+"  : {"CES" : "Cs+"},
   "Mg2+" : {"MG"  : "Mg2+"},
@@ -48,6 +49,7 @@ convres={
   }
 
 def clean_line(l):
+    import re
     l=l.strip()
     cstart=l.find('!')
     comment=""
@@ -59,7 +61,10 @@ def clean_line(l):
 
     # viparr1 uses python to eval the json data.
     # Python comments in eval'd strings cause problems
-    comment=comment.replace('#','_')
+    # and someone added a long hyphen into their 
+    # comments that breaks our c++ parsers... Thanks
+    # and someone started added unicode characters to the memos... not nice
+    comment = re.sub(r'[^\x00-\x7F]+',' ', comment.replace('#','_'))
     return(words,comment)
 
 def sec_parse_from_re(lines,regex):
@@ -642,7 +647,7 @@ def parse_residue(FFconv, lines):
 
     addBonds = operations["addBonds"]
     count = Counter(chain.from_iterable(addBonds))
-    filterN = [ b for b in extraBonds if (b[0]=='N' and count['N'] == 4) ]
+    filterN = [ b for b in extraBonds if (b[0]=='N' and (count['N'] == 4 or resname=="XPN")) ]
     assert len(filterN) < 2
     for b in filterN: addBonds.remove(b)
     operations["addBonds"] = list(set([tuple(sorted(k)) for k in addBonds]))
@@ -654,7 +659,7 @@ def parse_residue(FFconv, lines):
         raise RuntimeError(s)
 
     if(res_is_patch):
-        assert(resname not in FFconv.patches)
+        if resname in FFconv.patches: raise UserWarning(f"Resname already found in patches: {resname} {FFconv.patches.keys()}")
         FFconv.patches[resname] = operations
     else:
         tsys = build_residue(FFconv,operations)
@@ -665,7 +670,9 @@ def apply_pres(FFconv, prefix, pname, resname, presname, addToTemplates=True):
     tsys=FFconv.viparrff.typer.findTemplate(resname)
     operations=FFconv.patches.get(pname,None)
     assert(len(tsys)<=1)
-    if(len(tsys)==0 or operations is None): return None
+    if(len(tsys)==0 or operations is None):
+        # print(f"Couldnt find either {resname} or {pname} to make {presname}") 
+        return None
 
     tsys=tsys[0].clone()
     res=tsys.system.residue(0)
@@ -699,7 +706,7 @@ def apply_pres(FFconv, prefix, pname, resname, presname, addToTemplates=True):
     if(addToTemplates):
         matches,err=FFconv.viparrff.typer.matchFragment(patched,res.atoms)
         if(len(matches)>0):
-            print("Duplicate template(s) found. Skipping current",patched.name,[t[0] for t in matches])
+            print("Duplicate template(s) found. Skipping current",patched.name,[t[0].name for t in matches])
         else:
             FFconv.viparrff.typer.addTemplate(patched)
     return patched
@@ -824,6 +831,7 @@ def patch_amino_acids(FFconv):
     apply_pres(FFconv,"", "SP2", "SER", "DPSER")
     apply_pres(FFconv,"", "THP1", "THR", "MPTHR")
     apply_pres(FFconv,"", "THP2", "THR", "DPTHR")
+    apply_pres(FFconv,"", "THPB", "THR", "DPTHR")
 
 
     #apply NTER and CTER pres to aa residues:
