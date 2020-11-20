@@ -164,11 +164,27 @@ def addVirtualSiteData(viparrff, vtype, pdict):
     return pset,param
 
 def addTemplateData(typer, newTemplate, symQ):
-
-    res=newTemplate.system
-    matches,err=typer.matchFragment(newTemplate,res.atoms)
+    res = newTemplate.system
+    matches, err = typer.matchFragment(newTemplate, res.atoms)
     if(len(matches)>0):
-        print("Duplicate template(s) found. Skipping current", newTemplate.name, [t[0].name for t in matches])
+        notequal = []
+        tmpl, resatoms = matches[0]
+        matoms = tmpl.system.atoms
+        for a0, a1 in zip(res.atoms, matoms):
+            if(a1.atomic_number<1): continue
+            at0 = newTemplate.btype(a0)
+            at1 = tmpl.btype(a1)
+            s=[]
+            if(not (np.isclose(a0.charge, a1.charge))): s.append("q")
+            if (at0 != at1): s.append("type")
+            if(len(s)):
+                notequal.append((s, (a0.name, a0.charge, at0), (a1.name, a1.charge, at1)))
+        if len(notequal):
+            print("WARNING: new template with same graph has different parameters:", newTemplate.name,  [t[0].name for t in matches])
+            for bad in notequal:
+                print("    ",bad)
+        else:
+            print("Duplicate template(s) found with same parameters. Skipping current", newTemplate.name, [t[0].name for t in matches])
         return
 
     if(res.natoms>1 and symQ):
