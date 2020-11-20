@@ -1,4 +1,6 @@
 Release Notes:
+    4.7.34  viparr-convert-charmm: missing python bindings.
+
     4.7.33  viparr-convert-charmm: handle adjacent duplicated torsion parameters
 
     4.7.32  viparr-convert-charmm: avoid charge=-0.0, handle '=' in resname.
