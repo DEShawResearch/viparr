@@ -7,7 +7,7 @@ from . import helper as viparrConversionHelper
 # Do not change these unless you know what you are doing.
 # You will be in for a world of hurt if you change these and then attempt
 # to merge or append forcefields together in viparr
-amberEsScales=[0,0,0.8333]
+amberEsScales=[0, 0, 0.8333]
 amberVdwScales=[0.0, 0.0, 0.5]
 
 def convertPrmtopToDMS(prmtop,crd):
@@ -18,12 +18,27 @@ def convertPrmtopToDMS(prmtop,crd):
     msys.ReadCrdCoordinates(molNew, crd)
     return molNew
 
-def createViparrForcefieldFromAmberDMS(molFF, symQ=True, ff=None):
+def createViparrForcefieldFromAmberDMS(molFF, selection, es_scale, vdw_scale, tname=None, symQ=True, ff=None):
     from collections import defaultdict
+
+    my_es_scales = list(amberEsScales)
+    my_vdw_scales = list(amberVdwScales)
+
+    if es_scale != my_es_scales[-1]:
+        print(f"Warning: You are using a non-standard es scale factor for amber: {es_scale}")
+        my_es_scales[-1] = es_scale
+
+    if vdw_scale != my_vdw_scales[-1]:
+        print(f"Warning: You are using a non-standard vdw scale factor for amber: {vdw_scale}")
+        my_vdw_scales[-1] = vdw_scale
+
     if(ff is None):
-        viparrff=viparrConversionHelper.initializeSimpleForcefield(amberEsScales, amberVdwScales)
+        viparrff = viparrConversionHelper.initializeSimpleForcefield(my_es_scales, my_vdw_scales)
     else:
-        viparrff=ff
+        viparrff = ff
+
+
+    selected_ids = set(molFF.selectIds(selection))
 
     # extract the atomtype data first so we can fill in the parameter files and make a template with atomtypes
     atypes=[]
@@ -37,25 +52,49 @@ def createViparrForcefieldFromAmberDMS(molFF, symQ=True, ff=None):
     if(len(atypes) != molFF.natoms):
         raise RuntimeError("Consistency Check Failed. Missing atomstypes: %d != %d"%(len(atypes), molFF.natoms))
 
+    external_ids = set([ o.id for a in molFF.atoms for o in a.bonded_atoms if (a.id in selected_ids and o.id not in selected_ids)])
+    keep_ids = external_ids | selected_ids
+
+    iexternal = 0
+    keep_ids = external_ids | selected_ids
     acharges=[]
     tsys = viparr.TemplatedSystem()
     res = tsys.system.addResidue()
-    res.name = molFF.name
+    if tname is None:
+        res.name = molFF.name
+    else:
+        res.name = tname
+
+    idmap = dict()
     for atom, atype in zip(molFF.atoms, atypes):
         if(atom.atomic_number < 1):
             raise RuntimeError("non-real atoms are not supported")
-        a = res.addAtom()
-        a.name = atom.name
-        a.atomic_number = atom.atomic_number
-        a.mass = atom.mass
-        a.charge = atom.charge
-        tsys.setTypes(a, atype, atype)
         acharges.append(atom.charge)
+
+        if atom.id not in keep_ids: continue
+        a = res.addAtom()
+        idmap[atom.id] = a
+        if atom.id in selected_ids:
+            a.name = atom.name
+            a.atomic_number = atom.atomic_number
+            a.mass = atom.mass
+            a.charge = atom.charge
+            tsys.setTypes(a, atype, atype)
+        else:
+            a.name = "$"+str(iexternal)
+            a.atomic_number = -1
+            iexternal += 1
         pdict={"type" : atype, "amu" : atom.mass, "memo" : ""}
         viparrConversionHelper.addOrUpdateParameterData(viparrff, "mass", pdict, False, False)
     for bond in molFF.bonds:
-        res.system.atom(bond.first.id).addBond(res.system.atom(bond.second.id))
-    viparrConversionHelper.addTemplateData(viparrff.typer, tsys,symQ)
+        id0 = bond.first.id
+        id1 = bond.second.id
+        if id0 not in keep_ids or id1 not in keep_ids: continue
+        idmap[id0].addBond(idmap[id1])
+    viparrConversionHelper.addTemplateData(viparrff.typer, tsys, symQ)
+    # import IPython
+    # IPython.embed()
+
 
     bads = viparr.GetBondsAnglesDihedrals(molFF)
     # This shouldnt happen it there were no fake atoms above
@@ -91,7 +130,9 @@ def createViparrForcefieldFromAmberDMS(molFF, symQ=True, ff=None):
             for tname, atoms, pdicts in plist:
                 ttype=[atypes[a.id] for a in atoms]
                 if(tname.startswith("improper")):
-                    tsys.addImproper([tsys.system.atom(a.id) for a in atoms])
+                    ids = [ a.id for a in atoms ]
+                    if len(set(ids) & keep_ids) == 4:
+                        tsys.addImproper([ idmap[aid] for aid in ids])
                 elif(ttype[-1] < ttype[0]):
                     ttype = ttype[::-1]
                 ttype=" ".join(ttype)
@@ -131,36 +172,36 @@ def createViparrForcefieldFromAmberDMS(molFF, symQ=True, ff=None):
             # would could probably support *slightly* more complicated scale combinations if necessary
             # (like if we convert glycam with full 1-4 interactions)
             # This is a check only, we dont actually do anything with these parameters
-            scaleEsExact = 5./6.
-            scaleVDWExact = 0.5
             for t in table.terms:
                 if(len(t.atoms)!=2):
                     raise RuntimeError("Pair Terms are malformed: %d != 2"%(len(t.atoms)))
                 qSigEpsRef = []
-                for a in t.atoms:
-                    termRef = nbtable.term(a.id)
-                    qSigEpsRef.append((acharges[a.id], termRef["sigma"], termRef["epsilon"]))
+
+                aids = [a.id for a in t.atoms]
+                if aids[0] not in selected_ids or aids[1] not in selected_ids: continue
+                for aid in aids:
+                    termRef = nbtable.term(aid)
+                    qSigEpsRef.append((acharges[aid], termRef["sigma"], termRef["epsilon"]))
                 qij, aij, bij = t.param["qij"], t.param["aij"], t.param["bij"]
 
                 qijRef = qSigEpsRef[0][0]*qSigEpsRef[1][0]
-                qComb0 = scaleEsExact*qijRef
-                qComb1 = amberEsScales[-1]*qijRef
-                if(not numpy.isclose(qij, qComb0) and not numpy.isclose(qij, qComb1)):
+                qComb0 = my_es_scales[-1]*qijRef
+                if(not numpy.isclose(qij, qComb0, atol=1E-4)):
                     delta = qij - qComb0
-                    scale = qij / (qComb0 / scaleEsExact)
-                    raise RuntimeError("Pair Term qij != esScale*qi*qj: %f != %f (delta=%f apparentScale=%f)"%(qij, qComb0, delta, scale))
+                    scale = qij / qijRef
+                    print(f"Pair Term for ids {aids} qij != esScale*qi*qj {qij} {qComb0}: (delta, apparentScale {delta} {scale}")
                 sigComb = pow(0.5 * (qSigEpsRef[0][1] + qSigEpsRef[1][1]), 6)
-                epsComb = 4.0 * scaleVDWExact * (qSigEpsRef[0][2] * qSigEpsRef[1][2])**0.5
+                epsComb = 4.0 * my_vdw_scales[-1] * (qSigEpsRef[0][2] * qSigEpsRef[1][2])**0.5
                 bComb = epsComb * sigComb
                 aComb = bComb * sigComb
                 if(not numpy.isclose(aij, aComb)):
                     delta = aij - aComb
-                    scale = aij / (aComb / scaleVDWExact)
-                    raise RuntimeError("Pair Term aij != vdwScale*eps_ij*sigma_ij^12: %f != %f (delta=%f apparentScale=%f)"%(aij, aComb, delta, scale))
+                    scale = aij / (aComb / my_vdw_scales[-1])
+                    print(f"Pair Term for ids {aids} aij != vdwScale*eps_ij*sigma_ij^12 {aij} {aComb}: (delta, apparentScale {delta} {scale}")
                 if(not numpy.isclose(bij, bComb)):
                     delta = bij - bComb
-                    scale = bij / (bComb / scaleVDWExact)
-                    raise RuntimeError("Pair Term bij != vdwScale*eps_ij*sigma_ij^6: %f != %f (delta=%f apparentScale=%f)"%(bij, bComb, delta, scale))
+                    scale = bij / (bComb / my_vdw_scales[-1])
+                    print(f"Pair Term for ids {aids} bij != vdwScale*eps_ij*sigma_ij^12 {bij} {bComb}: (delta, apparentScale {delta} {scale}")
         elif(table.name.startswith("constraint_")):
             pass
         else:

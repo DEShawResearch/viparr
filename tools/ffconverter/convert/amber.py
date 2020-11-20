@@ -44,8 +44,7 @@ def makeRe(ntype,nparams):
 
 _re_bonds = makeRe(2,2)
 _re_angles = makeRe(3,2)
-_re_propers = makeRe(4,4)
-_re_propersCont=makeRe(0,4)
+_re_propers = [makeRe(4,4), makeRe(0,4)]
 _re_impropers = [makeRe(4,4), makeRe(4,3)]
 _sceere = re.compile(r'SCEE=\s*%(fnum)s' % _reSubs,re.IGNORECASE)
 _scnbre = re.compile(r'SCNB=\s*%(fnum)s' % _reSubs,re.IGNORECASE)
@@ -152,30 +151,41 @@ def process_torsion(FFconv,isFrcmod,ttype,data):
 
 def parse_proper(file,FFconv,isFrcmod):
     data=[]
+    last = None
     for r in sec_parse_from_re(file,_re_propers):
-        new=list(map(FFconv.fix_atypes,r[:4]))
-        idivf,pk,phase,pn=list(map(float,r[4:8]))
+        if len(r)==9:
+            atypes = list(map(FFconv.fix_atypes,r[:4]))
+            idivf,pk,phase,pn = list(map(float,r[4:8]))
+            comment = r[8]
+            last = atypes
+        elif len(r)==5:
+            atypes = last
+            idivf,pk,phase,pn = list(map(float,r[:4]))
+            comment = r[4]
+        else:
+            raise RuntimeError("Unsupported r")
+        print(atypes,idivf,pk,phase,pn)
 
-        scee=_sceere.search(r[8])
+        scee=_sceere.search(comment)
         if scee is None:
             scee=1.2
         else:
-            r[8]=r[8].replace(scee.group(0),'')
+            comment=comment.replace(scee.group(0),'')
             scee=float(scee.group(1))
 
-        scnb=_scnbre.search(r[8])
+        scnb=_scnbre.search(comment)
         if scnb is None:
             scnb=2.0
         else:
-            r[8]=r[8].replace(scnb.group(0),'')
+            comment=comment.replace(scnb.group(0),'')
             scnb=float(scnb.group(1))
         if(scee!=1.2 or scnb!=2.0):
-            raise RuntimeError("Unsupported SCEE or SCNB parameters in proper torsion spec: SCEE=%f SCNB=%f"%(scee,scnb))
+            print("Unsupported SCEE or SCNB parameters in proper torsion spec: SCEE=%f SCNB=%f"%(scee,scnb))
         assert(idivf.is_integer() and pn.is_integer())
         pn=int(pn)
         if(abs(pn)>6 or abs(pn)<1):
             raise RuntimeError("Proper torsion phase is unphysical in file %s: %d"%(file,pn))
-        data.append([new,pk/idivf,phase,pn,r[8].strip()])
+        data.append([atypes,pk/idivf,phase,pn,comment.strip()])
     process_torsion(FFconv,isFrcmod,"proper",data)
 
 
@@ -409,7 +419,7 @@ def apply_cmap_to_templates(FFconv):
                 }
         print(params)
         ffconverter.addOrUpdateParameterData(FFconv.viparrff,"torsiontorsion_cmap",params,False, False, False)
-
+    if len(rewrite)==0: return
     rewrite = set(rewrite)
     rewriteRef = set([v[0] for v in rewrite])
     assert len(rewriteRef) == 1, f"Got rewriteRef {rewriteRef}; expected exactly 1 element"
@@ -676,6 +686,7 @@ def _loadparam(filename,FFconv):
 # extended to support mol2 at some point
 # (amber seems to be moving that direction)
 def loadtempl(filename,pref,fftype,FFconv):
+    print("LOADING TMPL", filename)
     file = open(filename,'r')
 
     next(file) # card1
@@ -773,6 +784,23 @@ def loadtempl(filename,pref,fftype,FFconv):
                     tsys.setTypes(a,"S","S")
                     amap[a.name]=a
                     a.addBond(amap["SG"])
+            elif(fftype == "carb"):
+                carbon_map = { "0": [], "1": [1], "2": [2], "3": [3], "4": [4], "6": [6]}
+                carbon_map.update({"Z":[2,3], "Y":[2,4], "X":[2,6], "W":[3,4], "V":[3,6], "U":[4,6]})
+                carbon_map.update({"T":[2,3,4], "S":[2,3,6], "R":[2,4,6], "Q":[3,4,6], "P":[2,3,4,6]})
+                for rname in list(carbon_map.keys()):
+                    cvals = [f"C{i}" for i in carbon_map[rname]]
+                    carbon_map[rname] = cvals
+                wanted = ["C1", "C2", "C3", "C4", "C5", "C6"]
+                carbons = {a.name:a for a in tsys.system.atoms if a.name in wanted}
+                cap = carbon_map.get(nameres[0],[])
+                for icap, cname in cap:
+                    atom = carbons[cname]
+                    anew = res.addAtom()
+                    anew.name="$0"+cname[-1]
+                    anew.atomic_number=-1
+                    amap[anew.name] = anew
+                    anew.addBond(atom)
 
             elif(fftype == 'nucleic_acids'):
                 raise RuntimeError("Please Fix This Section")
