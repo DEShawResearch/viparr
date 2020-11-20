@@ -23,7 +23,7 @@ def checkTemplateExtras(tmpl0,atoms0,tmpl1,atoms1):
        items0=getattr(tmpl0,extra)
        items1=getattr(tmpl1,extra)
        if(len(items0)!=len(items1)):
-           raise RuntimeError("Different number of template features found for %s: %d != %d"%(extra,len(items0),len(items1)))
+           print("Different number of template features found in ff0:%s ff1:%s for %s: %d != %d"%(tmpl0.name,tmpl1.name,extra,len(items0),len(items1)))
        if(len(items0)==0): continue
        
 def compareTemplates(_templates0,_templates1):
@@ -57,7 +57,7 @@ def compareTemplates(_templates0,_templates1):
             checkTemplateExtras(tsys,resatoms,tmpl,matoms)
 
         elif tsys.name not in dmiss:
-            print("No template found for %s"%(tsys.name))
+            print("No template found in ff0 for %s (the template probably exists with different connectivity)"%(tsys.name))
         
 def compareParams(tableName,params0,params1):
     from collections import defaultdict
