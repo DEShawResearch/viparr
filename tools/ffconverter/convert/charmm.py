@@ -200,6 +200,7 @@ def parse_proper(FFconv,lines):
 
     # combine all the torsion fc's by type, then add grouped parameters to forcefield
     torsionList=[]
+    last = None
     for l in lines[1:]:
         (words,comment)=clean_line(l)
         if(len(words)==0): continue
@@ -212,6 +213,9 @@ def parse_proper(FFconv,lines):
         multi  ="fc%d"%(pn)
         phase  = float(words[6])
         atypes=" ".join(FFconv.fix_atypes(words[0:4]))
+        current = (atypes, fc, pn, phase)
+        if last == current: continue
+        last=current
 
         possible=[]
         for params in reversed(torsionList):
