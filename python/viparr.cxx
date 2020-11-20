@@ -169,6 +169,8 @@ static void export_typers(module m) {
         .def("addExclusion", &TemplatedSystem::addExclusion)
         .def("addImproper", &TemplatedSystem::addImproper)
         .def("addCmap", &TemplatedSystem::addCmap)
+        .def("addPseudoType", &TemplatedSystem::addPseudoType)
+        .def("addPseudoSites", &TemplatedSystem::addPseudoSites)
         .def("clone", &TemplatedSystem::clone)
         ;
 

@@ -9,5 +9,4 @@ PREFIX=${PREFIX:-build}
 garden prepend-path PATH $PREFIX/bin
 garden prepend-path PYTHONPATH $PREFIX/lib/python
 garden load viparr-ff/2.1.6c7/data
-exec pytest "$@"
-
+exec pytest $(dirname $0) -p no:azurepipelines "$@"
