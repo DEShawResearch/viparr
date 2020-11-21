@@ -1,4 +1,7 @@
 Release Notes:
+    4.7.35  Revert to c+11
+            Build wheels for python 3.{6,7,8}.
+
     4.7.34  viparr-convert-charmm: missing python bindings.
 
     4.7.33  viparr-convert-charmm: handle adjacent duplicated torsion parameters

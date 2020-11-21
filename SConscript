@@ -23,6 +23,7 @@ for d in 'src', 'python', 'tools':
 env.AddShare('modules.txt')
 env.AddShare('env.sh')
 
-if 'BUILD_WHEEL' in os.environ:
-    env['WHEEL_DIR'] = 'wheel'
-    env.AddWheel('pyproject.toml', pyver=os.getenv('BUILD_WHEEL_VERSION'))
+wver = os.getenv("BUILD_WHEEL_VERSION")
+if wver is not None:
+    env['WHEEL_DIR'] = 'wheel/dist'
+    env.AddWheel('pyproject.toml', pyver=wver)
