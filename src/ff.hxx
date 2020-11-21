@@ -5,6 +5,8 @@
 #include "rules.hxx"
 #include "template_typer.hxx"
 #include <msys/append.hxx>
+#include <list>
+#include <map>
 
 namespace desres { namespace viparr {
 

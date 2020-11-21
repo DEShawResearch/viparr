@@ -1,13 +1,11 @@
 '''
 DESRES extensions for SCons
 '''
-from __future__ import print_function
-
 from SCons.Script import *
 import os
 import subprocess
 
-EnsurePythonVersion(2,7)
+EnsurePythonVersion(3,6)
 EnsureSConsVersion(2,4)
 
 _wheel_targets = dict(platlib=[], purelib=[], data=[], scripts=[])
@@ -66,7 +64,6 @@ def munge_header(env, source, target):
         lines = fp.readlines()
     with open(dst, 'w') as fp:
         print('#!/usr/bin/env python', file=fp)
-        print('from __future__ import print_function', file=fp)
         print('import os, sys', file=fp)
         print('sys.path.insert(0,os.path.dirname(__file__)+"/../lib/python")', file=fp)
 
@@ -221,7 +218,8 @@ def _AddWheel(env, tomlfile, pyver='36'):
     # obtain wheel tag using specified python version
     wmod = 'wheel' if pyver.startswith('2') else 'setuptools'
     exe = 'python%s' % '.'.join(pyver)
-    tag = subprocess.check_output([exe, '-c', 'import %s.pep425tags as wp; tags=wp.get_supported(); best=[t for t in tags if "manylinux" not in "".join(t)][0]; print("-".join(best))' % wmod], universal_newlines=True).strip()
+    #tag = subprocess.check_output([exe, '-c', 'import %s.pep425tags as wp; tags=wp.get_supported(); best=[t for t in tags if "manylinux" not in "".join(t)][0]; print("-".join(best))' % wmod], universal_newlines=True).strip()
+    tag = "cp%s-cp%sm-linux_x86_64" % (pyver, pyver)
 
     # set things up for enscons.
     env.Replace(
@@ -241,18 +239,13 @@ def _AddWheel(env, tomlfile, pyver='36'):
     for category, elems in _wheel_targets.items():
         if category == 'platlib':
             target_dir = env['WHEEL_PATH'].get_path()
-            extra_dir = '.'
-        elif category == 'data':
-            target_dir = env['WHEEL_PATH'].get_path()
-            extra_dir = env['PACKAGE_NAME_SAFE']
         else:
             target_dir = env['WHEEL_DATA_PATH'].Dir(category).get_path()
-            extra_dir = '.'
         for targets, prefix in elems:
             for tgts in targets:
                 for node in env.arg2nodes(tgts):
                     relpath = os.path.relpath(node.get_path(), prefix)
-                    args = (os.path.join(target_dir, extra_dir, relpath), node)
+                    args = (os.path.join(target_dir, relpath), node)
                     wheel_targets.append(env.InstallAs(*args))
 
     whl = env.Zip(
@@ -292,7 +285,7 @@ def generate(env):
     opts.Add("OBJDIR", "build product location", 'build')
     opts.Add("PREFIX", "installation location")
 
-    opts.Add(ListVariable('PYTHONVER', 'python versions', os.getenv('PYTHONVER', ''), ['27', '35', '36', '37']))
+    opts.Add(ListVariable('PYTHONVER', 'python versions', os.getenv('PYTHONVER', ''), ['36', '37', '38', '39']))
     opts.Update(env)
 
     builddir = env.Dir(env['OBJDIR']).srcnode().abspath

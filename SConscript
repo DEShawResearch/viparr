@@ -13,7 +13,7 @@ if True:
     env.Append(CFLAGS=flg, CXXFLAGS=flg)
 
 env.Append(
-    CCFLAGS=['-O2', '-Wall', '-g', '-std=c++14'],
+    CCFLAGS=['-O2', '-Wall', '-g', '-std=c++11'],
     LIBS=['msys', 'msys-core'],
     )
 
@@ -25,4 +25,4 @@ env.AddShare('env.sh')
 
 if 'BUILD_WHEEL' in os.environ:
     env['WHEEL_DIR'] = 'wheel'
-    env.AddWheel('pyproject.toml', pyver='36')
+    env.AddWheel('pyproject.toml', pyver=os.getenv('BUILD_WHEEL_VERSION'))

@@ -4,7 +4,6 @@
 #include <msys/atomsel.hxx>
 #include <msys/system.hxx>
 #include <numeric>
-#include <tuple>
 #include <utility>
 #include <vector>
 
@@ -45,7 +44,14 @@ vec3f_t operator-(vec3f_t a, vec3f_t b) {
 
 using fliplist_t = std::vector<std::pair<std::string, std::string>>;
 using priorities_t = std::array<std::string, 4>;
-const std::vector<std::tuple<std::string, priorities_t, fliplist_t>> IUPAC_DATA = {
+
+struct data_t {
+    std::string selection;
+    priorities_t priorities;
+    fliplist_t flipList;
+};
+
+const std::vector<data_t> IUPAC_DATA = {
     { "resname VAL and name CB", {"HB", "CG2", "CG1", "CA"}, { { "CG1", "CG2" }, { "HG11", "HG21" }, { "HG12", "HG22" }, { "HG13", "HG23" } } },
     { "resname TYR and name CB", {"HB3", "HB2", "CG", "CA"}, { { "HB2", "HB3" } } },
     { "resname TRP and name CB", {"HB3", "HB2", "CG", "CA"}, { { "HB2", "HB3" } } },
@@ -172,16 +178,12 @@ FixProchiralProteinAtomNames(msys::SystemPtr s, bool checkOnly)
 
     msys::IdList incorrectCenters;
     for (const auto& item : IUPAC_DATA) {
-        const auto centerSelection = std::get<0>(item);
-        const auto priorities = std::get<1>(item);
-        const auto flipList = std::get<2>(item);
-
-        auto ids = msys::Atomselect(s, centerSelection);
+        auto ids = msys::Atomselect(s, item.selection);
         for (auto id : ids) {
-            if (classifyTetrahedralCenter(s, id, priorities) != Chirality_R) {
+            if (classifyTetrahedralCenter(s, id, item.priorities) != Chirality_R) {
                 incorrectCenters.push_back(id);
                 if (!checkOnly) {
-                    performSwap(id, flipList);
+                    performSwap(id, item.flipList);
                 }
             }
         }

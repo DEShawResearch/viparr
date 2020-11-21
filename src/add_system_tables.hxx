@@ -2,6 +2,7 @@
 #define desres_viparr_add_system_tables_hxx
 
 #include <msys/system.hxx>
+#include <list>
 
 namespace desres { namespace viparr {
 
