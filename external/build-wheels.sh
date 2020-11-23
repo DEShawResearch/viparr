@@ -45,6 +45,11 @@ main() {
         garden load $py/bin
         build
     done
+    for x in build/wheel/dist/*cp38m*.whl; do
+        y=${x//cp38m/cp38}
+        echo "rename $x -> $y"
+        mv $x $y
+    done
 }
 
 main
